@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading;
 using System.Collections;
+using ThreadState = System.Threading.ThreadState;
 
 namespace NCalc.Tests
 {
@@ -329,7 +330,7 @@ namespace NCalc.Tests
         {
             Assert.AreEqual("toto", new Expression("'to' + 'to'").Evaluate());
             Assert.AreEqual("one2", new Expression("'one' + 2").Evaluate());
-            Assert.AreEqual(3M, new Expression("1 + '2'").Evaluate());
+            Assert.AreEqual("12", new Expression("1 + '2'").Evaluate());
         }
 
         [TestMethod]
@@ -580,7 +581,7 @@ namespace NCalc.Tests
         }
 
         [TestMethod]
-        public void ShouldNotConvertRealTypes() 
+        public void ShouldNotConvertRealTypes()
         {
             var e = new Expression("x/2");
             e.Parameters["x"] = 2F;
@@ -598,7 +599,6 @@ namespace NCalc.Tests
             e.Parameters["a"] = 20M;
             e.Parameters["b"] = 20M;
             Assert.AreEqual(100M, e.Evaluate());
-
         }
     }
 }

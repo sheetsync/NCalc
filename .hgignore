@@ -12,3 +12,4 @@ glob:*.orig
 glob:*.suo
 glob:TestResults
 glob:*.itrace.csdef
+glob:*.csproj.user

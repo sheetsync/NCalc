@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Microsoft.CSharp.RuntimeBinder;
 
 namespace NCalc.Domain
 {
@@ -69,116 +70,108 @@ namespace NCalc.Domain
             }
         }
 
-        private static bool IsReal(object value)
-        {
-            var typeCode = Type.GetTypeCode(value.GetType());
-
-            return typeCode == TypeCode.Decimal || typeCode == TypeCode.Double || typeCode == TypeCode.Single;
-        }
-
         public override void Visit(BinaryExpression expression)
         {
             // Evaluates the left expression and saves the value
             expression.LeftExpression.Accept(this);
-            object left = Result;
+            dynamic left = Result;
 
             // Evaluates the right expression and saves the value
             expression.RightExpression.Accept(this);
-            object right = Result;
-
-            switch (expression.Type)
+            dynamic right = Result;
+            try
             {
-                case BinaryExpressionType.And:
-                    Result = Convert.ToBoolean(left) && Convert.ToBoolean(right);
-                    break;
 
-                case BinaryExpressionType.Or:
-                    Result = Convert.ToBoolean(left) || Convert.ToBoolean(right);
-                    break;
+                switch (expression.Type)
+                {
+                    case BinaryExpressionType.And:
+                        Result = left && right;
+                        break;
 
-                case BinaryExpressionType.Div:
-                    Result = IsReal(left) || IsReal(right)
-                                 ? Numbers.Divide(left, right)
-                                 : Numbers.Divide(Convert.ToDouble(left), right);
-                    break;
+                    case BinaryExpressionType.Or:
+                        Result = left || right;
+                        break;
 
-                case BinaryExpressionType.Equal:
-                    // Use the type of the left operand to make the comparison
-                    Result = CompareUsingMostPreciseType(left, right) == 0;
-                    break;
+                    case BinaryExpressionType.Div:
+                        // force integer divisions to double result, otherwise use standard operators
+                        if (left is int && right is int)
+                        {
+                            Result = Convert.ToDouble(left)/right;
+                        }
+                        else
+                        {
+                            Result = left/right;
+                        }
 
-                case BinaryExpressionType.Greater:
-                    // Use the type of the left operand to make the comparison
-                    Result = CompareUsingMostPreciseType(left, right) > 0;
-                    break;
+                        break;
 
-                case BinaryExpressionType.GreaterOrEqual:
-                    // Use the type of the left operand to make the comparison
-                    Result = CompareUsingMostPreciseType(left, right) >= 0;
-                    break;
+                    case BinaryExpressionType.Equal:
+                        Result = left == right;
+                        break;
 
-                case BinaryExpressionType.Lesser:
-                    // Use the type of the left operand to make the comparison
-                    Result = CompareUsingMostPreciseType(left, right) < 0;
-                    break;
+                    case BinaryExpressionType.Greater:
+                        Result = left > right;
+                        break;
 
-                case BinaryExpressionType.LesserOrEqual:
-                    // Use the type of the left operand to make the comparison
-                    Result = CompareUsingMostPreciseType(left, right) <= 0;
-                    break;
+                    case BinaryExpressionType.GreaterOrEqual:
+                        Result = left >= right;
+                        break;
 
-                case BinaryExpressionType.Minus:
-                    Result = Numbers.Soustract(left, right);
-                    break;
+                    case BinaryExpressionType.Lesser:
+                        Result = left < right;
+                        break;
 
-                case BinaryExpressionType.Modulo:
-                    Result = Numbers.Modulo(left, right);
-                    break;
+                    case BinaryExpressionType.LesserOrEqual:
+                        Result = left <= right;
+                        break;
 
-                case BinaryExpressionType.NotEqual:
-                    // Use the type of the left operand to make the comparison
-                    Result = CompareUsingMostPreciseType(left, right) != 0;
-                    break;
+                    case BinaryExpressionType.Minus:
+                        Result = left - right;
+                        break;
 
-                case BinaryExpressionType.Plus:
-                    if (left is string)
-                    {
-                        Result = String.Concat(left, right);
-                    }
-                    else
-                    {
-                        Result = Numbers.Add(left, right);
-                    }
+                    case BinaryExpressionType.Modulo:
+                        Result = left%right;
+                        break;
 
-                    break;
+                    case BinaryExpressionType.NotEqual:
+                        Result = left != right;
+                        break;
 
-                case BinaryExpressionType.Times:
-                    Result = Numbers.Multiply(left, right);
-                    break;
+                    case BinaryExpressionType.Plus:
+                        Result = left + right;
+                        break;
 
-                case BinaryExpressionType.BitwiseAnd:
-                    Result = Convert.ToUInt16(left) & Convert.ToUInt16(right);
-                    break;
+                    case BinaryExpressionType.Times:
+                        Result = left*right;
+                        break;
+
+                    case BinaryExpressionType.BitwiseAnd:
+                        Result = left & right;
+                        break;
 
 
-                case BinaryExpressionType.BitwiseOr:
-                    Result = Convert.ToUInt16(left) | Convert.ToUInt16(right);
-                    break;
+                    case BinaryExpressionType.BitwiseOr:
+                        Result = left | right;
+                        break;
 
 
-                case BinaryExpressionType.BitwiseXOr:
-                    Result = Convert.ToUInt16(left) ^ Convert.ToUInt16(right);
-                    break;
+                    case BinaryExpressionType.BitwiseXOr:
+                        Result = left ^ right;
+                        break;
 
 
-                case BinaryExpressionType.LeftShift:
-                    Result = Convert.ToUInt16(left) << Convert.ToUInt16(right);
-                    break;
+                    case BinaryExpressionType.LeftShift:
+                        Result = left << right;
+                        break;
 
-
-                case BinaryExpressionType.RightShift:
-                    Result = Convert.ToUInt16(left) >> Convert.ToUInt16(right);
-                    break;
+                    case BinaryExpressionType.RightShift:
+                        Result = left >> right;
+                        break;
+                }
+            }
+            catch(RuntimeBinderException e)
+            {
+                throw new InvalidOperationException(e.Message);
             }
         }
 
@@ -190,15 +183,15 @@ namespace NCalc.Domain
             switch (expression.Type)
             {
                 case UnaryExpressionType.Not:
-                    Result = !Convert.ToBoolean(Result);
+                    Result = !(dynamic)Result;
                     break;
 
                 case UnaryExpressionType.Negate:
-                    Result = Numbers.Soustract(0, Result);
+                    Result = 0 - (dynamic)Result;
                     break;
 
                 case UnaryExpressionType.BitwiseNot:
-                    Result = ~Convert.ToUInt16(Result);
+                    Result = ~(dynamic)Result;
                     break;
             }
         }
@@ -505,10 +498,10 @@ namespace NCalc.Domain
                     if (function.Expressions.Length != 2)
                         throw new ArgumentException("Max() takes exactly 2 arguments");
 
-                    object maxleft = Evaluate(function.Expressions[0]);
-                    object maxright = Evaluate(function.Expressions[1]);
+                    dynamic maxleft = Evaluate(function.Expressions[0]);
+                    dynamic maxright = Evaluate(function.Expressions[1]);
 
-                    Result = Numbers.Max(maxleft, maxright);
+                    Result = Math.Max(maxleft, maxright);
                     break;
 
                 #endregion
@@ -521,10 +514,10 @@ namespace NCalc.Domain
                     if (function.Expressions.Length != 2)
                         throw new ArgumentException("Min() takes exactly 2 arguments");
 
-                    object minleft = Evaluate(function.Expressions[0]);
-                    object minright = Evaluate(function.Expressions[1]);
+                    dynamic minleft = Evaluate(function.Expressions[0]);
+                    dynamic minright = Evaluate(function.Expressions[1]);
 
-                    Result = Numbers.Min(minleft, minright);
+                    Result = Math.Min(minleft, minright);
                     break;
 
                 #endregion

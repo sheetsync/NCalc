@@ -4,10 +4,11 @@ options
 {
 	output=AST;
 	ASTLabelType=CommonTree;
-	language=CSharp;
+	language=CSharp3;
 }
 
 @header {
+using System;
 using System.Text;
 using System.Globalization;
 using System.Collections.Generic;
@@ -299,5 +300,5 @@ fragment UnicodeEscape
     	;
 
 /* Ignore white spaces */	
-WS	:  (' '|'\r'|'\t'|'\u000C'|'\n') {$channel=HIDDEN;}
+WS	:  (' '|'\r'|'\t'|'\u000C'|'\n') {$channel=Hidden;}
 	;

@@ -21,6 +21,8 @@ permissions:
 
 env:
   CONFIGURATION: Release
+  CORE_PROJECT: Evaluant.Calculator/NCalc.csproj
+  TEST_PROJECT: Evaluant.Calculator.Tests/NCalc.Tests.csproj
   DOTNET_NOLOGO: true
 
 jobs:
@@ -54,28 +56,36 @@ jobs:
           echo "PACKAGE_VERSION=$package_version" >> "$GITHUB_ENV"
 
       - name: Restore
-        run: dotnet restore NCalc.sln
+        run: |
+          dotnet restore ${{ env.CORE_PROJECT }}
+          dotnet restore ${{ env.TEST_PROJECT }}
 
       - name: Build
-        run: dotnet build NCalc.sln --configuration "$CONFIGURATION" --no-restore
+        run: |
+          dotnet build ${{ env.CORE_PROJECT }} --configuration ${{ env.CONFIGURATION }} --no-restore
+          dotnet build ${{ env.TEST_PROJECT }} --configuration ${{ env.CONFIGURATION }} --no-restore
 
       - name: Test
-        run: dotnet test NCalc.sln --configuration "$CONFIGURATION" --no-build
+        run: dotnet test ${{ env.TEST_PROJECT }} --configuration ${{ env.CONFIGURATION }} --no-build
 
       - name: Pack
         run: >
-          dotnet pack Evaluant.Calculator/NCalc.csproj
-          --configuration "$CONFIGURATION"
+          dotnet pack ${{ env.CORE_PROJECT }}
+          --configuration ${{ env.CONFIGURATION }}
           --no-build
           --output artifacts/packages
           /p:PackageVersion="$PACKAGE_VERSION"
           /p:ContinuousIntegrationBuild=true
+          /p:IncludeSymbols=true
+          /p:SymbolPackageFormat=snupkg
 
       - name: Upload NuGet package
         uses: actions/upload-artifact@v4
         with:
           name: ncalc-${{ env.PACKAGE_VERSION }}
-          path: artifacts/packages/*.nupkg
+          path: |
+            artifacts/packages/*.nupkg
+            artifacts/packages/*.snupkg
           if-no-files-found: error
 
       - name: Publish to NuGet.org
@@ -94,7 +104,18 @@ jobs:
             exit 0
           fi
 
-          dotnet nuget push artifacts/packages/*.nupkg \
-            --api-key "${{ secrets.NUGET_API_KEY }}" \
-            --source "https://api.nuget.org/v3/index.json" \
-            --skip-duplicate
+          for package in artifacts/packages/*.nupkg; do
+            dotnet nuget push "$package" \
+              --api-key "${{ secrets.NUGET_API_KEY }}" \
+              --source "https://api.nuget.org/v3/index.json" \
+              --skip-duplicate
+          done
+
+          for symbols_package in artifacts/packages/*.snupkg; do
+            if [ -e "$symbols_package" ]; then
+              dotnet nuget push "$symbols_package" \
+                --api-key "${{ secrets.NUGET_API_KEY }}" \
+                --source "https://api.nuget.org/v3/index.json" \
+                --skip-duplicate
+            fi
+          done

@@ -14,12 +14,21 @@ permissions:
 
 env:
   CONFIGURATION: Release
+  CORE_PROJECT: Evaluant.Calculator/NCalc.csproj
+  TEST_PROJECT: Evaluant.Calculator.Tests/NCalc.Tests.csproj
   DOTNET_NOLOGO: true
 
 jobs:
   build-test-pack:
-    name: Restore, build, test, and pack
-    runs-on: ubuntu-latest
+    name: Restore, build, test, and pack (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
 
     steps:
       - name: Check out repository
@@ -34,38 +43,46 @@ jobs:
         run: dotnet --info
 
       - name: Restore
-        run: dotnet restore NCalc.sln
+        run: |
+          dotnet restore ${{ env.CORE_PROJECT }}
+          dotnet restore ${{ env.TEST_PROJECT }}
 
       - name: Build
-        run: dotnet build NCalc.sln --configuration "$CONFIGURATION" --no-restore
+        run: |
+          dotnet build ${{ env.CORE_PROJECT }} --configuration ${{ env.CONFIGURATION }} --no-restore
+          dotnet build ${{ env.TEST_PROJECT }} --configuration ${{ env.CONFIGURATION }} --no-restore
 
       - name: Test
         run: >
-          dotnet test NCalc.sln
-          --configuration "$CONFIGURATION"
+          dotnet test ${{ env.TEST_PROJECT }}
+          --configuration ${{ env.CONFIGURATION }}
           --no-build
           --logger "trx;LogFileName=test-results.trx"
           --results-directory TestResults
 
       - name: Pack
         run: >
-          dotnet pack Evaluant.Calculator/NCalc.csproj
-          --configuration "$CONFIGURATION"
+          dotnet pack ${{ env.CORE_PROJECT }}
+          --configuration ${{ env.CONFIGURATION }}
           --no-build
           --output artifacts/packages
           /p:ContinuousIntegrationBuild=true
+          /p:IncludeSymbols=true
+          /p:SymbolPackageFormat=snupkg
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
+          name: test-results-${{ matrix.os }}
           path: TestResults
           if-no-files-found: ignore
 
       - name: Upload NuGet package
         uses: actions/upload-artifact@v4
         with:
-          name: nuget-package
-          path: artifacts/packages/*.nupkg
+          name: nuget-package-${{ matrix.os }}
+          path: |
+            artifacts/packages/*.nupkg
+            artifacts/packages/*.snupkg
           if-no-files-found: error

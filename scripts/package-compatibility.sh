@@ -52,6 +52,7 @@ main() {
   validate_baseline_identity
   validate_current_identity
   validate_current_package_shape
+  validate_antlr_public_surface_compatibility
   run_net35_parser_source_smoke
   run_legacy_binary_identity_probe
 
@@ -192,6 +193,50 @@ validate_current_package_shape() {
     assert_embedded_type "${assembly_path}" "Antlr.Runtime.IAstRuleReturnScope"
     assert_embedded_type "${assembly_path}" "Antlr.Runtime.Tree.CommonTree"
   done < <(current_assemblies)
+}
+
+validate_antlr_public_surface_compatibility() {
+  local baseline_types
+  local excluded_types
+  local current_types
+  local missing_types
+
+  baseline_types="${WORK_ROOT}/baseline-antlr-public-types.txt"
+  excluded_types="${WORK_ROOT}/approved-antlr-public-type-exclusions.txt"
+  public_antlr_types "${BASELINE_EXTRACT_ROOT}/lib/NCalc.dll" >"${baseline_types}"
+  approved_antlr_public_type_exclusions >"${excluded_types}"
+
+  while IFS= read -r assembly_path; do
+    current_types="${WORK_ROOT}/current-antlr-public-types-$(basename "$(dirname "${assembly_path}")").txt"
+    missing_types="${WORK_ROOT}/missing-antlr-public-types-$(basename "$(dirname "${assembly_path}")").txt"
+
+    public_antlr_types "${assembly_path}" >"${current_types}"
+    comm -23 "${baseline_types}" "${current_types}" | comm -23 - "${excluded_types}" >"${missing_types}"
+
+    if [[ -s "${missing_types}" ]]; then
+      echo "Current package is missing legacy public ANTLR types in ${assembly_path}:" >&2
+      cat "${missing_types}" >&2
+      exit 1
+    fi
+  done < <(current_assemblies)
+}
+
+public_antlr_types() {
+  local assembly_path="$1"
+
+  monodis --typedef "${assembly_path}" |
+    awk '/^[0-9]+:/ && $2 ~ /^Antlr\.Runtime/ && $0 ~ /flags=0x[0-9A-Fa-f]*[12][,)]/ { print $2 }' |
+    sort -u
+}
+
+approved_antlr_public_type_exclusions() {
+  # These two legacy public names are nested inside upstream ANTLR runtime types.
+  # Restoring them would require vendoring or IL-weaving ANTLR itself; all safe
+  # top-level legacy names are restored by source shims and protected by smoke tests.
+  cat <<'TEXT' | sort -u
+Antlr.Runtime.DFA/SpecialStateTransitionHandler
+Antlr.Runtime.Tree.TreeWizard/ContextVisitor
+TEXT
 }
 
 assert_package_version_metadata() {
@@ -408,8 +453,82 @@ internal static class ParserSmoke
             throw new InvalidOperationException("Expected parser return scope to expose token boundaries.");
         }
 
+        AssertLegacyAntlrSurface(tokens, parserResult, tree);
+
         Console.WriteLine("Parser smoke passed.");
         return 0;
+    }
+
+    private static void AssertLegacyAntlrSurface(CommonTokenStream tokens, ParserRuleReturnScope parserResult, CommonTree tree)
+    {
+        RuleReturnScope ruleReturnScope = CreateParserReturnScopeFromTree(tree);
+        TreeRuleReturnScope treeRuleReturnScope = new TreeRuleReturnScope();
+        treeRuleReturnScope.Start = tree;
+
+        if (ruleReturnScope.Start == null || treeRuleReturnScope.Start == null)
+        {
+            throw new InvalidOperationException("Expected legacy return-scope shims to store Start values.");
+        }
+
+        if (Token.EOF != -1 || Token.DOWN != 2 || Token.UP != 3 || Token.EOF_TOKEN == null || Token.SKIP_TOKEN == null)
+        {
+            throw new InvalidOperationException("Expected legacy Token constants and singleton fields.");
+        }
+
+        if (Antlr.Runtime.Tree.Tree.INVALID_NODE == null)
+        {
+            throw new InvalidOperationException("Expected legacy Tree.INVALID_NODE.");
+        }
+
+        SynPredPointer synPredPointer = delegate { };
+        synPredPointer();
+
+        Antlr.Runtime.Collections.HashList hashList = new Antlr.Runtime.Collections.HashList();
+        hashList.Add("key", "value");
+        if (!hashList.Contains("key") || !object.Equals("value", hashList["key"]))
+        {
+            throw new InvalidOperationException("Expected legacy HashList behavior.");
+        }
+
+        Antlr.Runtime.Collections.StackList stackList = new Antlr.Runtime.Collections.StackList();
+        stackList.Push("value");
+        if (!object.Equals("value", stackList.Peek()) || !object.Equals("value", stackList.Pop()))
+        {
+            throw new InvalidOperationException("Expected legacy StackList behavior.");
+        }
+
+        if (Antlr.Runtime.Collections.CollectionUtils.ListToString(new object[] { "a", "b" }).Length == 0)
+        {
+            throw new InvalidOperationException("Expected legacy CollectionUtils behavior.");
+        }
+
+        if (Antlr.Runtime.Misc.Stats.Sum(new[] { 1, 2, 3 }) != 6)
+        {
+            throw new InvalidOperationException("Expected legacy Stats behavior.");
+        }
+
+        Antlr.Runtime.Misc.ErrorManager errorManager = new Antlr.Runtime.Misc.ErrorManager();
+        Antlr.Runtime.CommonErrorNode rootErrorNode = new Antlr.Runtime.CommonErrorNode(
+            tokens,
+            (IToken)parserResult.Start,
+            (IToken)parserResult.Stop,
+            new RecognitionException(tokens));
+        Antlr.Runtime.Tree.UnBufferedTreeNodeStream unbufferedTreeNodeStream = new Antlr.Runtime.Tree.UnBufferedTreeNodeStream(tree);
+        unbufferedTreeNodeStream.HasUniqueNavigationNodes = true;
+
+        if (errorManager == null || rootErrorNode == null || unbufferedTreeNodeStream.Size() == 0)
+        {
+            throw new InvalidOperationException("Expected legacy ANTLR tree shims.");
+        }
+    }
+
+    private static RuleReturnScope CreateParserReturnScopeFromTree(CommonTree tree)
+    {
+        RuleReturnScope ruleReturnScope = new RuleReturnScope();
+        ruleReturnScope.Start = Token.INVALID_TOKEN;
+        ruleReturnScope.Stop = Token.EOF_TOKEN;
+        ruleReturnScope.Tree = tree;
+        return ruleReturnScope;
     }
 }
 CSHARP

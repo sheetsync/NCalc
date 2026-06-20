@@ -78,6 +78,8 @@ add_local_package() {
 write_smoke_program() {
   cat >"${SMOKE_ROOT}/NCalc.ConsumerSmoke/Program.cs" <<'CSHARP'
 using System;
+using System.IO;
+using System.Text;
 using Antlr.Runtime;
 using Antlr.Runtime.Tree;
 using NCalc;
@@ -98,6 +100,25 @@ CommonTree? tree = parserResult.Tree as CommonTree;
 if (tree is null)
 {
     throw new InvalidOperationException("Expected parser to return a CommonTree.");
+}
+
+string filePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".txt");
+try
+{
+    File.WriteAllText(filePath, "abc", Encoding.UTF8);
+    ANTLRFileStream fileStream = new ANTLRFileStream(filePath, Encoding.UTF8);
+
+    if (fileStream.SourceName != filePath || fileStream.Count != 3 || fileStream.Substring(0, 3) != "abc")
+    {
+        throw new InvalidOperationException("Expected ANTLRFileStream to read a file through the packed NCalc assembly.");
+    }
+}
+finally
+{
+    if (File.Exists(filePath))
+    {
+        File.Delete(filePath);
+    }
 }
 
 Console.WriteLine($"NCalc consumer smoke passed: {result}");

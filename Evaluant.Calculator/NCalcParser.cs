@@ -189,7 +189,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
-		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		public new CommonTree Tree { get { return _tree; } set { _tree = value; } }
 		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
@@ -240,14 +240,14 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 			retval.Stop = (IToken)input.LT(-1);
 
 			retval.Tree = (CommonTree)adaptor.RulePostProcessing(root_0);
-			adaptor.SetTokenBoundaries(retval.Tree, retval.Start, retval.Stop);
+			adaptor.SetTokenBoundaries(retval.Tree, (IToken)retval.Start, (IToken)retval.Stop);
 
 		}
 		catch (RecognitionException re)
 		{
 			ReportError(re);
 			Recover(input,re);
-		retval.Tree = (CommonTree)adaptor.ErrorNode(input, retval.Start, input.LT(-1), re);
+		retval.Tree = (CommonTree)adaptor.ErrorNode(input, (IToken)retval.Start, input.LT(-1), re);
 
 		}
 		finally
@@ -267,7 +267,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
-		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		public new CommonTree Tree { get { return _tree; } set { _tree = value; } }
 		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
@@ -369,14 +369,14 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 			retval.Stop = (IToken)input.LT(-1);
 
 			retval.Tree = (CommonTree)adaptor.RulePostProcessing(root_0);
-			adaptor.SetTokenBoundaries(retval.Tree, retval.Start, retval.Stop);
+			adaptor.SetTokenBoundaries(retval.Tree, (IToken)retval.Start, (IToken)retval.Stop);
 
 		}
 		catch (RecognitionException re)
 		{
 			ReportError(re);
 			Recover(input,re);
-		retval.Tree = (CommonTree)adaptor.ErrorNode(input, retval.Start, input.LT(-1), re);
+		retval.Tree = (CommonTree)adaptor.ErrorNode(input, (IToken)retval.Start, input.LT(-1), re);
 
 		}
 		finally
@@ -396,7 +396,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
-		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		public new CommonTree Tree { get { return _tree; } set { _tree = value; } }
 		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
@@ -510,14 +510,14 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 			retval.Stop = (IToken)input.LT(-1);
 
 			retval.Tree = (CommonTree)adaptor.RulePostProcessing(root_0);
-			adaptor.SetTokenBoundaries(retval.Tree, retval.Start, retval.Stop);
+			adaptor.SetTokenBoundaries(retval.Tree, (IToken)retval.Start, (IToken)retval.Stop);
 
 		}
 		catch (RecognitionException re)
 		{
 			ReportError(re);
 			Recover(input,re);
-		retval.Tree = (CommonTree)adaptor.ErrorNode(input, retval.Start, input.LT(-1), re);
+		retval.Tree = (CommonTree)adaptor.ErrorNode(input, (IToken)retval.Start, input.LT(-1), re);
 
 		}
 		finally
@@ -537,7 +537,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
-		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		public new CommonTree Tree { get { return _tree; } set { _tree = value; } }
 		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
@@ -651,14 +651,14 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 			retval.Stop = (IToken)input.LT(-1);
 
 			retval.Tree = (CommonTree)adaptor.RulePostProcessing(root_0);
-			adaptor.SetTokenBoundaries(retval.Tree, retval.Start, retval.Stop);
+			adaptor.SetTokenBoundaries(retval.Tree, (IToken)retval.Start, (IToken)retval.Stop);
 
 		}
 		catch (RecognitionException re)
 		{
 			ReportError(re);
 			Recover(input,re);
-		retval.Tree = (CommonTree)adaptor.ErrorNode(input, retval.Start, input.LT(-1), re);
+		retval.Tree = (CommonTree)adaptor.ErrorNode(input, (IToken)retval.Start, input.LT(-1), re);
 
 		}
 		finally
@@ -678,7 +678,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
-		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		public new CommonTree Tree { get { return _tree; } set { _tree = value; } }
 		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
@@ -782,14 +782,14 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 			retval.Stop = (IToken)input.LT(-1);
 
 			retval.Tree = (CommonTree)adaptor.RulePostProcessing(root_0);
-			adaptor.SetTokenBoundaries(retval.Tree, retval.Start, retval.Stop);
+			adaptor.SetTokenBoundaries(retval.Tree, (IToken)retval.Start, (IToken)retval.Stop);
 
 		}
 		catch (RecognitionException re)
 		{
 			ReportError(re);
 			Recover(input,re);
-		retval.Tree = (CommonTree)adaptor.ErrorNode(input, retval.Start, input.LT(-1), re);
+		retval.Tree = (CommonTree)adaptor.ErrorNode(input, (IToken)retval.Start, input.LT(-1), re);
 
 		}
 		finally
@@ -809,7 +809,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
-		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		public new CommonTree Tree { get { return _tree; } set { _tree = value; } }
 		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
@@ -913,14 +913,14 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 			retval.Stop = (IToken)input.LT(-1);
 
 			retval.Tree = (CommonTree)adaptor.RulePostProcessing(root_0);
-			adaptor.SetTokenBoundaries(retval.Tree, retval.Start, retval.Stop);
+			adaptor.SetTokenBoundaries(retval.Tree, (IToken)retval.Start, (IToken)retval.Stop);
 
 		}
 		catch (RecognitionException re)
 		{
 			ReportError(re);
 			Recover(input,re);
-		retval.Tree = (CommonTree)adaptor.ErrorNode(input, retval.Start, input.LT(-1), re);
+		retval.Tree = (CommonTree)adaptor.ErrorNode(input, (IToken)retval.Start, input.LT(-1), re);
 
 		}
 		finally
@@ -940,7 +940,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
-		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		public new CommonTree Tree { get { return _tree; } set { _tree = value; } }
 		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
@@ -1044,14 +1044,14 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 			retval.Stop = (IToken)input.LT(-1);
 
 			retval.Tree = (CommonTree)adaptor.RulePostProcessing(root_0);
-			adaptor.SetTokenBoundaries(retval.Tree, retval.Start, retval.Stop);
+			adaptor.SetTokenBoundaries(retval.Tree, (IToken)retval.Start, (IToken)retval.Stop);
 
 		}
 		catch (RecognitionException re)
 		{
 			ReportError(re);
 			Recover(input,re);
-		retval.Tree = (CommonTree)adaptor.ErrorNode(input, retval.Start, input.LT(-1), re);
+		retval.Tree = (CommonTree)adaptor.ErrorNode(input, (IToken)retval.Start, input.LT(-1), re);
 
 		}
 		finally
@@ -1071,7 +1071,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
-		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		public new CommonTree Tree { get { return _tree; } set { _tree = value; } }
 		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
@@ -1247,14 +1247,14 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 			retval.Stop = (IToken)input.LT(-1);
 
 			retval.Tree = (CommonTree)adaptor.RulePostProcessing(root_0);
-			adaptor.SetTokenBoundaries(retval.Tree, retval.Start, retval.Stop);
+			adaptor.SetTokenBoundaries(retval.Tree, (IToken)retval.Start, (IToken)retval.Stop);
 
 		}
 		catch (RecognitionException re)
 		{
 			ReportError(re);
 			Recover(input,re);
-		retval.Tree = (CommonTree)adaptor.ErrorNode(input, retval.Start, input.LT(-1), re);
+		retval.Tree = (CommonTree)adaptor.ErrorNode(input, (IToken)retval.Start, input.LT(-1), re);
 
 		}
 		finally
@@ -1274,7 +1274,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
-		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		public new CommonTree Tree { get { return _tree; } set { _tree = value; } }
 		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
@@ -1476,14 +1476,14 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 			retval.Stop = (IToken)input.LT(-1);
 
 			retval.Tree = (CommonTree)adaptor.RulePostProcessing(root_0);
-			adaptor.SetTokenBoundaries(retval.Tree, retval.Start, retval.Stop);
+			adaptor.SetTokenBoundaries(retval.Tree, (IToken)retval.Start, (IToken)retval.Stop);
 
 		}
 		catch (RecognitionException re)
 		{
 			ReportError(re);
 			Recover(input,re);
-		retval.Tree = (CommonTree)adaptor.ErrorNode(input, retval.Start, input.LT(-1), re);
+		retval.Tree = (CommonTree)adaptor.ErrorNode(input, (IToken)retval.Start, input.LT(-1), re);
 
 		}
 		finally
@@ -1503,7 +1503,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
-		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		public new CommonTree Tree { get { return _tree; } set { _tree = value; } }
 		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
@@ -1659,14 +1659,14 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 			retval.Stop = (IToken)input.LT(-1);
 
 			retval.Tree = (CommonTree)adaptor.RulePostProcessing(root_0);
-			adaptor.SetTokenBoundaries(retval.Tree, retval.Start, retval.Stop);
+			adaptor.SetTokenBoundaries(retval.Tree, (IToken)retval.Start, (IToken)retval.Stop);
 
 		}
 		catch (RecognitionException re)
 		{
 			ReportError(re);
 			Recover(input,re);
-		retval.Tree = (CommonTree)adaptor.ErrorNode(input, retval.Start, input.LT(-1), re);
+		retval.Tree = (CommonTree)adaptor.ErrorNode(input, (IToken)retval.Start, input.LT(-1), re);
 
 		}
 		finally
@@ -1686,7 +1686,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
-		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		public new CommonTree Tree { get { return _tree; } set { _tree = value; } }
 		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
@@ -1842,14 +1842,14 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 			retval.Stop = (IToken)input.LT(-1);
 
 			retval.Tree = (CommonTree)adaptor.RulePostProcessing(root_0);
-			adaptor.SetTokenBoundaries(retval.Tree, retval.Start, retval.Stop);
+			adaptor.SetTokenBoundaries(retval.Tree, (IToken)retval.Start, (IToken)retval.Stop);
 
 		}
 		catch (RecognitionException re)
 		{
 			ReportError(re);
 			Recover(input,re);
-		retval.Tree = (CommonTree)adaptor.ErrorNode(input, retval.Start, input.LT(-1), re);
+		retval.Tree = (CommonTree)adaptor.ErrorNode(input, (IToken)retval.Start, input.LT(-1), re);
 
 		}
 		finally
@@ -1869,7 +1869,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
-		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		public new CommonTree Tree { get { return _tree; } set { _tree = value; } }
 		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
@@ -2050,14 +2050,14 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 			retval.Stop = (IToken)input.LT(-1);
 
 			retval.Tree = (CommonTree)adaptor.RulePostProcessing(root_0);
-			adaptor.SetTokenBoundaries(retval.Tree, retval.Start, retval.Stop);
+			adaptor.SetTokenBoundaries(retval.Tree, (IToken)retval.Start, (IToken)retval.Stop);
 
 		}
 		catch (RecognitionException re)
 		{
 			ReportError(re);
 			Recover(input,re);
-		retval.Tree = (CommonTree)adaptor.ErrorNode(input, retval.Start, input.LT(-1), re);
+		retval.Tree = (CommonTree)adaptor.ErrorNode(input, (IToken)retval.Start, input.LT(-1), re);
 
 		}
 		finally
@@ -2077,7 +2077,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
-		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		public new CommonTree Tree { get { return _tree; } set { _tree = value; } }
 		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
@@ -2265,14 +2265,14 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 			retval.Stop = (IToken)input.LT(-1);
 
 			retval.Tree = (CommonTree)adaptor.RulePostProcessing(root_0);
-			adaptor.SetTokenBoundaries(retval.Tree, retval.Start, retval.Stop);
+			adaptor.SetTokenBoundaries(retval.Tree, (IToken)retval.Start, (IToken)retval.Stop);
 
 		}
 		catch (RecognitionException re)
 		{
 			ReportError(re);
 			Recover(input,re);
-		retval.Tree = (CommonTree)adaptor.ErrorNode(input, retval.Start, input.LT(-1), re);
+		retval.Tree = (CommonTree)adaptor.ErrorNode(input, (IToken)retval.Start, input.LT(-1), re);
 
 		}
 		finally
@@ -2292,7 +2292,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
-		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		public new CommonTree Tree { get { return _tree; } set { _tree = value; } }
 		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
@@ -2463,14 +2463,14 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 			retval.Stop = (IToken)input.LT(-1);
 
 			retval.Tree = (CommonTree)adaptor.RulePostProcessing(root_0);
-			adaptor.SetTokenBoundaries(retval.Tree, retval.Start, retval.Stop);
+			adaptor.SetTokenBoundaries(retval.Tree, (IToken)retval.Start, (IToken)retval.Stop);
 
 		}
 		catch (RecognitionException re)
 		{
 			ReportError(re);
 			Recover(input,re);
-		retval.Tree = (CommonTree)adaptor.ErrorNode(input, retval.Start, input.LT(-1), re);
+		retval.Tree = (CommonTree)adaptor.ErrorNode(input, (IToken)retval.Start, input.LT(-1), re);
 
 		}
 		finally
@@ -2490,7 +2490,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	{
 		public ValueExpression value;
 		private CommonTree _tree;
-		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		public new CommonTree Tree { get { return _tree; } set { _tree = value; } }
 		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
@@ -2676,14 +2676,14 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 			retval.Stop = (IToken)input.LT(-1);
 
 			retval.Tree = (CommonTree)adaptor.RulePostProcessing(root_0);
-			adaptor.SetTokenBoundaries(retval.Tree, retval.Start, retval.Stop);
+			adaptor.SetTokenBoundaries(retval.Tree, (IToken)retval.Start, (IToken)retval.Stop);
 
 		}
 		catch (RecognitionException re)
 		{
 			ReportError(re);
 			Recover(input,re);
-		retval.Tree = (CommonTree)adaptor.ErrorNode(input, retval.Start, input.LT(-1), re);
+		retval.Tree = (CommonTree)adaptor.ErrorNode(input, (IToken)retval.Start, input.LT(-1), re);
 
 		}
 		finally
@@ -2703,7 +2703,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	{
 		public Identifier value;
 		private CommonTree _tree;
-		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		public new CommonTree Tree { get { return _tree; } set { _tree = value; } }
 		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
@@ -2793,14 +2793,14 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 			retval.Stop = (IToken)input.LT(-1);
 
 			retval.Tree = (CommonTree)adaptor.RulePostProcessing(root_0);
-			adaptor.SetTokenBoundaries(retval.Tree, retval.Start, retval.Stop);
+			adaptor.SetTokenBoundaries(retval.Tree, (IToken)retval.Start, (IToken)retval.Stop);
 
 		}
 		catch (RecognitionException re)
 		{
 			ReportError(re);
 			Recover(input,re);
-		retval.Tree = (CommonTree)adaptor.ErrorNode(input, retval.Start, input.LT(-1), re);
+		retval.Tree = (CommonTree)adaptor.ErrorNode(input, (IToken)retval.Start, input.LT(-1), re);
 
 		}
 		finally
@@ -2820,7 +2820,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	{
 		public List<LogicalExpression> value;
 		private CommonTree _tree;
-		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		public new CommonTree Tree { get { return _tree; } set { _tree = value; } }
 		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
@@ -2924,14 +2924,14 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 			retval.Stop = (IToken)input.LT(-1);
 
 			retval.Tree = (CommonTree)adaptor.RulePostProcessing(root_0);
-			adaptor.SetTokenBoundaries(retval.Tree, retval.Start, retval.Stop);
+			adaptor.SetTokenBoundaries(retval.Tree, (IToken)retval.Start, (IToken)retval.Stop);
 
 		}
 		catch (RecognitionException re)
 		{
 			ReportError(re);
 			Recover(input,re);
-		retval.Tree = (CommonTree)adaptor.ErrorNode(input, retval.Start, input.LT(-1), re);
+		retval.Tree = (CommonTree)adaptor.ErrorNode(input, (IToken)retval.Start, input.LT(-1), re);
 
 		}
 		finally
@@ -2951,7 +2951,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	{
 		public List<LogicalExpression> value;
 		private CommonTree _tree;
-		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		public new CommonTree Tree { get { return _tree; } set { _tree = value; } }
 		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
@@ -3040,14 +3040,14 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 			retval.Stop = (IToken)input.LT(-1);
 
 			retval.Tree = (CommonTree)adaptor.RulePostProcessing(root_0);
-			adaptor.SetTokenBoundaries(retval.Tree, retval.Start, retval.Stop);
+			adaptor.SetTokenBoundaries(retval.Tree, (IToken)retval.Start, (IToken)retval.Stop);
 
 		}
 		catch (RecognitionException re)
 		{
 			ReportError(re);
 			Recover(input,re);
-		retval.Tree = (CommonTree)adaptor.ErrorNode(input, retval.Start, input.LT(-1), re);
+		retval.Tree = (CommonTree)adaptor.ErrorNode(input, (IToken)retval.Start, input.LT(-1), re);
 
 		}
 		finally

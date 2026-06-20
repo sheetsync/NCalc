@@ -519,6 +519,9 @@ internal static class ParserSmoke
         Antlr.Runtime.Tree.UnBufferedTreeNodeStream unbufferedTreeNodeStream = new Antlr.Runtime.Tree.UnBufferedTreeNodeStream(tree);
         unbufferedTreeNodeStream.HasUniqueNavigationNodes = true;
 
+        AssertLegacyUnBufferedTreeNodeStreamSurface(unbufferedTreeNodeStream);
+        AssertLegacyRewriteRuleElementStreamSurface();
+
         if (errorManager == null || rootErrorNode == null || unbufferedTreeNodeStream.Size() == 0)
         {
             throw new InvalidOperationException("Expected legacy ANTLR tree shims.");
@@ -532,6 +535,41 @@ internal static class ParserSmoke
         ruleReturnScope.Stop = Token.EOF_TOKEN;
         ruleReturnScope.Tree = tree;
         return ruleReturnScope;
+    }
+
+    private static void AssertLegacyUnBufferedTreeNodeStreamSurface(UnBufferedTreeNodeStream stream)
+    {
+        bool getThrowsNotSupported = false;
+        try
+        {
+            stream.Get(0);
+        }
+        catch (NotSupportedException)
+        {
+            getThrowsNotSupported = true;
+        }
+
+        if (!getThrowsNotSupported || stream.Current != null || !stream.MoveNext() || stream.Current == null)
+        {
+            throw new InvalidOperationException("Expected legacy UnBufferedTreeNodeStream cursor members.");
+        }
+
+        stream.Reset();
+        if (stream.Current != null)
+        {
+            throw new InvalidOperationException("Expected legacy UnBufferedTreeNodeStream reset behavior.");
+        }
+    }
+
+    private static void AssertLegacyRewriteRuleElementStreamSurface()
+    {
+        LegacyRewriteRuleElementStream stream = new LegacyRewriteRuleElementStream(new CommonTreeAdaptor());
+        stream.Add("value");
+
+        if (!stream.HasNext() || stream.Size() != 1 || !object.Equals("value", stream.ReadNext()))
+        {
+            throw new InvalidOperationException("Expected legacy RewriteRuleElementStream<T> subclass behavior.");
+        }
     }
 
     private static void AssertLegacyAntlrFileStreamSurface()
@@ -568,6 +606,19 @@ internal static class ParserSmoke
         public string FileName
         {
             get { return fileName; }
+        }
+    }
+
+    private sealed class LegacyRewriteRuleElementStream : RewriteRuleElementStream<object>
+    {
+        public LegacyRewriteRuleElementStream(ITreeAdaptor adaptor)
+            : base(adaptor, "legacy")
+        {
+        }
+
+        public object ReadNext()
+        {
+            return _Next();
         }
     }
 }

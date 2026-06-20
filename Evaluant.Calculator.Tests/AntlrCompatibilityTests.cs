@@ -206,6 +206,14 @@ namespace NCalc.Tests
             Assert.IsTrue(stream.HasUniqueNavigationNodes);
             Assert.IsGreaterThanOrEqualTo(0, stream.Size());
             Assert.AreEqual(-1, stream.Index());
+            Assert.Throws<NotSupportedException>(delegate { stream.Get(0); });
+            Assert.IsNull(stream.Current);
+            Assert.IsTrue(stream.MoveNext());
+            Assert.AreSame(tree, stream.Current);
+            Assert.IsFalse(stream.MoveNext());
+            Assert.IsNull(stream.Current);
+            stream.Reset();
+            Assert.IsNull(stream.Current);
         }
 
         [TestMethod]
@@ -241,11 +249,6 @@ namespace NCalc.Tests
             public object ReadNext()
             {
                 return _Next();
-            }
-
-            protected override object Dup(object element)
-            {
-                return element;
             }
         }
 

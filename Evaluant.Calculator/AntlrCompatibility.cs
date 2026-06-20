@@ -347,18 +347,19 @@ namespace Antlr.Runtime.Tree
 
     public class UnBufferedTreeNodeStream : BufferedTreeNodeStream
     {
-        private readonly object legacyTreeSource;
+        private readonly List<object> legacyTraversal = new List<object>();
+        private int legacyTraversalIndex = -1;
 
         public UnBufferedTreeNodeStream(object tree)
             : base(tree)
         {
-            legacyTreeSource = tree;
+            AddTraversalNodes(tree);
         }
 
         public UnBufferedTreeNodeStream(ITreeAdaptor adaptor, object tree)
             : base(adaptor, tree)
         {
-            legacyTreeSource = tree;
+            AddTraversalNodes(tree);
         }
 
         public bool HasUniqueNavigationNodes
@@ -367,9 +368,36 @@ namespace Antlr.Runtime.Tree
             set { UniqueNavigationNodes = value; }
         }
 
+        public object Current { get; private set; }
+
+        public object Get(int index)
+        {
+            throw new NotSupportedException("stream is unbuffered");
+        }
+
+        public bool MoveNext()
+        {
+            if (legacyTraversalIndex + 1 >= legacyTraversal.Count)
+            {
+                Current = null;
+                return false;
+            }
+
+            legacyTraversalIndex++;
+            Current = legacyTraversal[legacyTraversalIndex];
+            return true;
+        }
+
+        public override void Reset()
+        {
+            base.Reset();
+            legacyTraversalIndex = -1;
+            Current = null;
+        }
+
         public int Size()
         {
-            return CountTreeNodes(legacyTreeSource);
+            return CountStreamItems(root);
         }
 
         public new int Index()
@@ -377,18 +405,49 @@ namespace Antlr.Runtime.Tree
             return base.Index;
         }
 
-        private static int CountTreeNodes(object node)
+        private void AddTraversalNodes(object node)
         {
+            if (node == null)
+            {
+                return;
+            }
+
+            legacyTraversal.Add(node);
+
             ITree tree = node as ITree;
             if (tree == null)
             {
-                return node == null ? 0 : 1;
+                return;
+            }
+
+            for (int childIndex = 0; childIndex < tree.ChildCount; childIndex++)
+            {
+                AddTraversalNodes(tree.GetChild(childIndex));
+            }
+        }
+
+        private static int CountStreamItems(object node)
+        {
+            if (node == null)
+            {
+                return 0;
+            }
+
+            ITree tree = node as ITree;
+            if (tree == null)
+            {
+                return 1;
             }
 
             int count = 1;
+            if (tree.ChildCount > 0)
+            {
+                count += 2;
+            }
+
             for (int childIndex = 0; childIndex < tree.ChildCount; childIndex++)
             {
-                count += CountTreeNodes(tree.GetChild(childIndex));
+                count += CountStreamItems(tree.GetChild(childIndex));
             }
 
             return count;
@@ -435,6 +494,11 @@ namespace Antlr.Runtime.Tree
         protected object _Next()
         {
             return NextCore();
+        }
+
+        protected override object Dup(object element)
+        {
+            return element;
         }
 
         protected virtual object ToTree(T element)

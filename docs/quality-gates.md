@@ -13,6 +13,7 @@ Required gates:
 - A Cobertura coverage report is produced by `dotnet test`.
 - The package builds locally with `dotnet pack`.
 - Public API changes require explicit approval and a written compatibility note.
+- Framework compatibility tests pass against both the `net35` asset and the `netstandard2.0` asset.
 - Consumer smoke tests pass from a local package feed for modern .NET.
 - Windows must run a .NET Framework consumer smoke before any public release that claims Framework compatibility.
 
@@ -28,14 +29,20 @@ The script validates the production package and test project directly:
 
 1. `dotnet restore Evaluant.Calculator/NCalc.csproj`
 2. `dotnet restore Evaluant.Calculator.Tests/NCalc.Tests.csproj`
-3. `dotnet build Evaluant.Calculator/NCalc.csproj --configuration Release --no-restore`
-4. `dotnet build Evaluant.Calculator.Tests/NCalc.Tests.csproj --configuration Release --no-restore`
-5. `dotnet test Evaluant.Calculator.Tests/NCalc.Tests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage"`
-6. `dotnet pack Evaluant.Calculator/NCalc.csproj --configuration Release --no-build`
-7. SDK package validation with `EnablePackageValidation=true` after hydrating the `NCalc` `1.3.8` baseline package
-8. A modern .NET consumer smoke from the packed local package
+3. `dotnet restore Evaluant.Calculator.FrameworkCompatibility.Tests/NCalc.FrameworkCompatibility.Tests.csproj`
+4. `dotnet build Evaluant.Calculator/NCalc.csproj --configuration Release --no-restore`
+5. `dotnet build Evaluant.Calculator.Tests/NCalc.Tests.csproj --configuration Release --no-restore`
+6. `dotnet build Evaluant.Calculator.FrameworkCompatibility.Tests/NCalc.FrameworkCompatibility.Tests.csproj --configuration Release --no-restore`
+7. Compatibility assertions against the `netstandard2.0` asset using `dotnet run`
+8. Compatibility assertions against the `net35` asset using `mono` on Unix-like systems or the `.exe` directly on Windows
+9. `dotnet test Evaluant.Calculator.Tests/NCalc.Tests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage"`
+10. `dotnet pack Evaluant.Calculator/NCalc.csproj --configuration Release --no-build`
+11. SDK package validation with `EnablePackageValidation=true` after hydrating the `NCalc` `1.3.8` baseline package
+12. A modern .NET consumer smoke from the packed local package
 
 Coverage output is written to `artifacts/coverage` and must include `coverage.cobertura.xml`.
+
+The Framework compatibility harness intentionally uses a plain console runner rather than MSTest so the same assertions can execute on the `net35` build under Mono and the `netstandard2.0` build under modern .NET. It focuses on culture-sensitive parsing, date and Unicode parsing, decimal/float conversion, unsigned arithmetic quirks, exact legacy exception messages, lazy callbacks, and manual AST evaluation.
 
 Local validation packs `NCalc` as `1.3.8-qualitygates` by default. This avoids NuGet reusing a globally cached `NCalc` `1.3.8` baseline package during consumer smoke tests. Override with `PACKAGE_VERSION=...` only when the replacement version is deliberate.
 

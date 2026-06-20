@@ -12,6 +12,7 @@ readonly API_COMPAT_BASELINE_VERSION="${API_COMPAT_BASELINE_VERSION:-1.3.8}"
 readonly NUGET_PACKAGE_SOURCE="${NUGET_PACKAGE_SOURCE:-https://api.nuget.org/v3/index.json}"
 readonly CORE_PROJECT="${CORE_PROJECT:-Evaluant.Calculator/NCalc.csproj}"
 readonly TEST_PROJECT="${TEST_PROJECT:-Evaluant.Calculator.Tests/NCalc.Tests.csproj}"
+readonly FRAMEWORK_COMPATIBILITY_PROJECT="${FRAMEWORK_COMPATIBILITY_PROJECT:-Evaluant.Calculator.FrameworkCompatibility.Tests/NCalc.FrameworkCompatibility.Tests.csproj}"
 
 main() {
   cd "${REPOSITORY_ROOT}"
@@ -21,6 +22,7 @@ main() {
 
   restore_projects
   build_projects
+  run_framework_compatibility_tests
   run_tests_with_coverage
   pack_package
   run_api_compatibility_check
@@ -58,12 +60,36 @@ restore_projects() {
   print_section "Restoring projects"
   dotnet restore "${CORE_PROJECT}"
   dotnet restore "${TEST_PROJECT}"
+  dotnet restore "${FRAMEWORK_COMPATIBILITY_PROJECT}"
 }
 
 build_projects() {
   print_section "Building projects"
   dotnet build "${CORE_PROJECT}" --configuration "${CONFIGURATION}" --no-restore
   dotnet build "${TEST_PROJECT}" --configuration "${CONFIGURATION}" --no-restore
+  dotnet build "${FRAMEWORK_COMPATIBILITY_PROJECT}" --configuration "${CONFIGURATION}" --no-restore
+}
+
+run_framework_compatibility_tests() {
+  local net35_executable
+
+  print_section "Running framework compatibility tests"
+
+  dotnet run \
+    --project "${FRAMEWORK_COMPATIBILITY_PROJECT}" \
+    --configuration "${CONFIGURATION}" \
+    --framework net10.0 \
+    --no-build
+
+  net35_executable="${REPOSITORY_ROOT}/Evaluant.Calculator.FrameworkCompatibility.Tests/bin/${CONFIGURATION}/net35/NCalc.FrameworkCompatibility.Tests.exe"
+
+  if [[ "${OS:-}" == "Windows_NT" ]]; then
+    "${net35_executable}"
+    return
+  fi
+
+  require_command mono
+  mono "${net35_executable}"
 }
 
 run_tests_with_coverage() {

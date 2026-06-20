@@ -19,6 +19,27 @@ env:
   DOTNET_NOLOGO: true
 
 jobs:
+  quality-gates:
+    name: Local quality gates and compatibility
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install Mono runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes mono-runtime
+
+      - name: Run local validation gates
+        run: scripts/validate.sh
+
   build-test-pack:
     name: Restore, build, test, and pack (${{ matrix.os }})
     runs-on: ${{ matrix.os }}

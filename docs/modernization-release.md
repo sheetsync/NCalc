@@ -17,15 +17,19 @@ After the earlier modernization PRs are applied, maintainers should be able to r
 ```sh
 dotnet restore Evaluant.Calculator/NCalc.csproj
 dotnet restore Evaluant.Calculator.Tests/NCalc.Tests.csproj
+dotnet restore Evaluant.Calculator.FrameworkCompatibility.Tests/NCalc.FrameworkCompatibility.Tests.csproj
 dotnet build Evaluant.Calculator/NCalc.csproj --configuration Release --no-restore
 dotnet build Evaluant.Calculator.Tests/NCalc.Tests.csproj --configuration Release --no-restore
+dotnet build Evaluant.Calculator.FrameworkCompatibility.Tests/NCalc.FrameworkCompatibility.Tests.csproj --configuration Release --no-restore
+dotnet run --project Evaluant.Calculator.FrameworkCompatibility.Tests/NCalc.FrameworkCompatibility.Tests.csproj --configuration Release --framework net10.0 --no-build
+mono Evaluant.Calculator.FrameworkCompatibility.Tests/bin/Release/net35/NCalc.FrameworkCompatibility.Tests.exe
 dotnet test Evaluant.Calculator.Tests/NCalc.Tests.csproj --configuration Release --no-build
 dotnet pack Evaluant.Calculator/NCalc.csproj --configuration Release --no-build --output artifacts/packages /p:ContinuousIntegrationBuild=true /p:IncludeSymbols=true /p:SymbolPackageFormat=snupkg
 ```
 
 The pack command should emit both `.nupkg` and `.snupkg` files after the SDK-style project conversion. The current legacy project layout still targets .NET Framework 3.5, so these commands depend on the earlier SDK-style conversion PRs.
 
-The GitHub CI workflow runs the same restore, build, test, and pack flow on Ubuntu, macOS, and Windows. It validates the library and modern test project directly because the full solution still contains the legacy `Evaluant.Calculator.Play` .NET Framework 3.5 sample project. Windows remains part of the required gate because the modernization must preserve compatibility expectations for existing .NET Framework consumers.
+The GitHub CI workflow runs the same restore, build, test, and pack flow on Ubuntu, macOS, and Windows. A dedicated Ubuntu quality-gates job also runs `scripts/validate.sh`, including API compatibility, coverage, local-feed consumer smoke, and the compatibility harness against both `net35` under Mono and `netstandard2.0` under modern .NET. CI validates the library and modern test project directly because the full solution still contains the legacy `Evaluant.Calculator.Play` .NET Framework 3.5 sample project. Windows remains part of the required gate because the modernization must preserve compatibility expectations for existing .NET Framework consumers.
 
 ## Release Quality Gate
 

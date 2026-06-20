@@ -55,29 +55,13 @@ jobs:
 
           echo "PACKAGE_VERSION=$package_version" >> "$GITHUB_ENV"
 
-      - name: Restore
+      - name: Install Mono runtime
         run: |
-          dotnet restore ${{ env.CORE_PROJECT }}
-          dotnet restore ${{ env.TEST_PROJECT }}
+          sudo apt-get update
+          sudo apt-get install --yes mono-runtime
 
-      - name: Build
-        run: |
-          dotnet build ${{ env.CORE_PROJECT }} --configuration ${{ env.CONFIGURATION }} --no-restore
-          dotnet build ${{ env.TEST_PROJECT }} --configuration ${{ env.CONFIGURATION }} --no-restore
-
-      - name: Test
-        run: dotnet test ${{ env.TEST_PROJECT }} --configuration ${{ env.CONFIGURATION }} --no-build
-
-      - name: Pack
-        run: >
-          dotnet pack ${{ env.CORE_PROJECT }}
-          --configuration ${{ env.CONFIGURATION }}
-          --no-build
-          --output artifacts/packages
-          /p:PackageVersion="$PACKAGE_VERSION"
-          /p:ContinuousIntegrationBuild=true
-          /p:IncludeSymbols=true
-          /p:SymbolPackageFormat=snupkg
+      - name: Run release validation gates
+        run: scripts/validate.sh
 
       - name: Upload NuGet package
         uses: actions/upload-artifact@v4

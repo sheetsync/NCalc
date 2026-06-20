@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - main
+      - "codex/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CONFIGURATION: Release
+  DOTNET_NOLOGO: true
+
+jobs:
+  build-test-pack:
+    name: Restore, build, test, and pack
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Show .NET information
+        run: dotnet --info
+
+      - name: Restore
+        run: dotnet restore NCalc.sln
+
+      - name: Build
+        run: dotnet build NCalc.sln --configuration "$CONFIGURATION" --no-restore
+
+      - name: Test
+        run: >
+          dotnet test NCalc.sln
+          --configuration "$CONFIGURATION"
+          --no-build
+          --logger "trx;LogFileName=test-results.trx"
+          --results-directory TestResults
+
+      - name: Pack
+        run: >
+          dotnet pack Evaluant.Calculator/NCalc.csproj
+          --configuration "$CONFIGURATION"
+          --no-build
+          --output artifacts/packages
+          /p:ContinuousIntegrationBuild=true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults
+          if-no-files-found: ignore
+
+      - name: Upload NuGet package
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-package
+          path: artifacts/packages/*.nupkg
+          if-no-files-found: error

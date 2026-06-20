@@ -1,0 +1,39 @@
+# Build outputs
+[Bb]in/
+[Oo]bj/
+[Bb]uild/
+artifacts/
+TestResults/
+_Package/
+
+# User and IDE state
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.sln.cache
+*.rsuser
+*ReSharper*/
+
+# Test and coverage output
+*.trx
+*.coverage
+*.coveragexml
+*.dotCover
+*.itrace.csdef
+
+# NuGet outputs
+*.nupkg
+*.snupkg
+packages/
+
+# Patch and merge leftovers
+*.patch
+*.orig
+*.rej
+
+# OS files
+.DS_Store
+desktop.ini

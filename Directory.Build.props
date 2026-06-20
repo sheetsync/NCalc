@@ -1,0 +1,19 @@
+<Project>
+  <PropertyGroup>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'NCalc'">
+    <PackageId>NCalc</PackageId>
+    <Title>NCalc</Title>
+    <Authors>Sebastien Ros</Authors>
+    <Product>NCalc</Product>
+    <Description>Mathematical expressions evaluator for .NET.</Description>
+    <PackageTags>ncalc;expression;expressions;calculator;formula;evaluator</PackageTags>
+    <PackageProjectUrl>https://github.com/sheetsync/NCalc</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/sheetsync/NCalc.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+  </PropertyGroup>
+</Project>

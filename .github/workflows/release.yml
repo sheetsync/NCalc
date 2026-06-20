@@ -1,0 +1,100 @@
+name: Release Package
+
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+    inputs:
+      package_version:
+        description: NuGet package version to build, without a leading v.
+        required: true
+        type: string
+      publish:
+        description: Publish the package to NuGet.org instead of running a dry pack.
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+env:
+  CONFIGURATION: Release
+  DOTNET_NOLOGO: true
+
+jobs:
+  package:
+    name: Build, test, pack, and optionally publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Resolve package version
+        shell: bash
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "release" ]; then
+            package_version="${GITHUB_REF_NAME#v}"
+          else
+            package_version="${{ inputs.package_version }}"
+          fi
+
+          if [ -z "$package_version" ]; then
+            echo "Package version could not be resolved." >&2
+            exit 1
+          fi
+
+          echo "PACKAGE_VERSION=$package_version" >> "$GITHUB_ENV"
+
+      - name: Restore
+        run: dotnet restore NCalc.sln
+
+      - name: Build
+        run: dotnet build NCalc.sln --configuration "$CONFIGURATION" --no-restore
+
+      - name: Test
+        run: dotnet test NCalc.sln --configuration "$CONFIGURATION" --no-build
+
+      - name: Pack
+        run: >
+          dotnet pack Evaluant.Calculator/NCalc.csproj
+          --configuration "$CONFIGURATION"
+          --no-build
+          --output artifacts/packages
+          /p:PackageVersion="$PACKAGE_VERSION"
+          /p:ContinuousIntegrationBuild=true
+
+      - name: Upload NuGet package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ncalc-${{ env.PACKAGE_VERSION }}
+          path: artifacts/packages/*.nupkg
+          if-no-files-found: error
+
+      - name: Publish to NuGet.org
+        shell: bash
+        run: |
+          should_publish=false
+
+          if [ "$GITHUB_EVENT_NAME" = "release" ]; then
+            should_publish=true
+          elif [ "${{ inputs.publish }}" = "true" ]; then
+            should_publish=true
+          fi
+
+          if [ "$should_publish" != "true" ]; then
+            echo "Dry run complete. Package was built but not published."
+            exit 0
+          fi
+
+          dotnet nuget push artifacts/packages/*.nupkg \
+            --api-key "${{ secrets.NUGET_API_KEY }}" \
+            --source "https://api.nuget.org/v3/index.json" \
+            --skip-duplicate

@@ -64,7 +64,7 @@ namespace Antlr.Runtime
 #if NETSTANDARD2_0
     public class ANTLRFileStream : ANTLRStringStream
     {
-        private string fileName;
+        protected string fileName;
 
         protected ANTLRFileStream()
         {

@@ -69,6 +69,7 @@ namespace NCalc.Tests
 
                 derivedStream.Load(filePath, Encoding.UTF8);
                 Assert.IsNull(derivedStream.SourceName);
+                Assert.IsNull(derivedStream.FileName);
                 Assert.AreEqual(3, derivedStream.Count);
             }
             finally
@@ -250,6 +251,10 @@ namespace NCalc.Tests
 
         private sealed class LegacyAntlrFileStream : ANTLRFileStream
         {
+            public string FileName
+            {
+                get { return fileName; }
+            }
         }
 
         private static void AssertLegacyTokenValue(int expectedValue, int actualValue)

@@ -544,7 +544,7 @@ internal static class ParserSmoke
             LegacyAntlrFileStream fileStream = new LegacyAntlrFileStream();
             fileStream.Load(filePath, null);
 
-            if (fileStream.Count != 3)
+            if (fileStream.Count != 3 || fileStream.FileName != null)
             {
                 throw new InvalidOperationException("Expected legacy ANTLRFileStream protected members.");
             }
@@ -563,6 +563,11 @@ internal static class ParserSmoke
         public LegacyAntlrFileStream()
             : base()
         {
+        }
+
+        public string FileName
+        {
+            get { return fileName; }
         }
     }
 }

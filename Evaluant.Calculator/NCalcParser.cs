@@ -190,6 +190,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 		public LogicalExpression value;
 		private CommonTree _tree;
 		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
 	partial void Enter_ncalcExpression();
@@ -267,6 +268,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 		public LogicalExpression value;
 		private CommonTree _tree;
 		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
 	partial void Enter_logicalExpression();
@@ -395,6 +397,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 		public LogicalExpression value;
 		private CommonTree _tree;
 		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
 	partial void Enter_conditionalExpression();
@@ -535,6 +538,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 		public LogicalExpression value;
 		private CommonTree _tree;
 		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
 	partial void Enter_booleanAndExpression();
@@ -675,6 +679,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 		public LogicalExpression value;
 		private CommonTree _tree;
 		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
 	partial void Enter_bitwiseOrExpression();
@@ -805,6 +810,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 		public LogicalExpression value;
 		private CommonTree _tree;
 		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
 	partial void Enter_bitwiseXOrExpression();
@@ -935,6 +941,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 		public LogicalExpression value;
 		private CommonTree _tree;
 		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
 	partial void Enter_bitwiseAndExpression();
@@ -1065,6 +1072,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 		public LogicalExpression value;
 		private CommonTree _tree;
 		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
 	partial void Enter_equalityExpression();
@@ -1267,6 +1275,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 		public LogicalExpression value;
 		private CommonTree _tree;
 		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
 	partial void Enter_relationalExpression();
@@ -1495,6 +1504,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 		public LogicalExpression value;
 		private CommonTree _tree;
 		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
 	partial void Enter_shiftExpression();
@@ -1677,6 +1687,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 		public LogicalExpression value;
 		private CommonTree _tree;
 		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
 	partial void Enter_additiveExpression();
@@ -1859,6 +1870,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 		public LogicalExpression value;
 		private CommonTree _tree;
 		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
 	partial void Enter_multiplicativeExpression();
@@ -2066,6 +2078,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 		public LogicalExpression value;
 		private CommonTree _tree;
 		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
 	partial void Enter_unaryExpression();
@@ -2280,6 +2293,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 		public LogicalExpression value;
 		private CommonTree _tree;
 		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
 	partial void Enter_primaryExpression();
@@ -2477,6 +2491,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 		public ValueExpression value;
 		private CommonTree _tree;
 		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
 	partial void Enter_value();
@@ -2689,6 +2704,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 		public Identifier value;
 		private CommonTree _tree;
 		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
 	partial void Enter_identifier();
@@ -2805,6 +2821,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 		public List<LogicalExpression> value;
 		private CommonTree _tree;
 		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
 	partial void Enter_expressionList();
@@ -2935,6 +2952,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 		public List<LogicalExpression> value;
 		private CommonTree _tree;
 		public CommonTree Tree { get { return _tree; } set { _tree = value; } }
+		object IAstRuleReturnScope.Tree { get { return Tree; } }
 	}
 
 	partial void Enter_arguments();

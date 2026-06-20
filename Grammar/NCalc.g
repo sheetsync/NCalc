@@ -183,7 +183,7 @@ multiplicativeExpression returns [LogicalExpression value]
 @init {
 BinaryExpressionType type = BinaryExpressionType.Unknown;
 }
-	:	left=unaryExpression { $value = $left.value); } (
+	:	left=unaryExpression { $value = $left.value; } (
 			( '*' { type = BinaryExpressionType.Times; } 
 			| '/' { type = BinaryExpressionType.Div; } 
 			| '%' { type = BinaryExpressionType.Modulo; } ) 

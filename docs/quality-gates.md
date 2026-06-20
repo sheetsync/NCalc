@@ -1,6 +1,6 @@
 # Quality Gates
 
-This branch adds the repeatable validation gates for the NCalc modernization stack. It is designed to run after the SDK-style core port and the modern test-project migration.
+These validation gates keep the NCalc modernization stack honest. They run after the SDK-style core port, modern test-project migration, and compatibility hardening have been applied.
 
 ## Passing Standard
 
@@ -124,7 +124,7 @@ It verifies:
 - the current package declares license expression `MIT`;
 - `Antlr3.Runtime` is not a package dependency;
 - the `net35` and `netstandard2.0` assemblies embed public `Antlr.Runtime.*`, `NCalcLexer`, `NCalcParser`, and parser return-scope types;
-- a parser/lexer consumer using the legacy non-generic `ParserRuleReturnScope` source pattern can compile and run against the packed `net35` assembly;
+- parser/lexer consumers using legacy ANTLR source patterns, including non-generic `ParserRuleReturnScope` and derived `ANTLRFileStream`, can compile and run against the packed `net35` assembly;
 - a consumer compiled against the legacy package references the old token, documenting why a new key is a major-version binary identity break.
 
 ## Consumer Smoke

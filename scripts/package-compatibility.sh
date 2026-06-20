@@ -422,6 +422,7 @@ write_parser_smoke_program() {
 
   cat >"${program_path}" <<'CSHARP'
 using System;
+using System.IO;
 using Antlr.Runtime;
 using Antlr.Runtime.Tree;
 using NCalc;
@@ -507,6 +508,8 @@ internal static class ParserSmoke
             throw new InvalidOperationException("Expected legacy Stats behavior.");
         }
 
+        AssertLegacyAntlrFileStreamSurface();
+
         Antlr.Runtime.Misc.ErrorManager errorManager = new Antlr.Runtime.Misc.ErrorManager();
         Antlr.Runtime.CommonErrorNode rootErrorNode = new Antlr.Runtime.CommonErrorNode(
             tokens,
@@ -529,6 +532,38 @@ internal static class ParserSmoke
         ruleReturnScope.Stop = Token.EOF_TOKEN;
         ruleReturnScope.Tree = tree;
         return ruleReturnScope;
+    }
+
+    private static void AssertLegacyAntlrFileStreamSurface()
+    {
+        string filePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".txt");
+
+        try
+        {
+            File.WriteAllText(filePath, "abc");
+            LegacyAntlrFileStream fileStream = new LegacyAntlrFileStream();
+            fileStream.Load(filePath, null);
+
+            if (fileStream.Count != 3)
+            {
+                throw new InvalidOperationException("Expected legacy ANTLRFileStream protected members.");
+            }
+        }
+        finally
+        {
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
+    }
+
+    private sealed class LegacyAntlrFileStream : ANTLRFileStream
+    {
+        public LegacyAntlrFileStream()
+            : base()
+        {
+        }
     }
 }
 CSHARP

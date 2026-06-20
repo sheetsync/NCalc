@@ -3,6 +3,8 @@
   <PropertyGroup>
     <NCalcAntlrRuntimeAssembly Condition="'$(TargetFramework)' == 'net35'">$(NuGetPackageRoot)antlr3.runtime/3.5.1/lib/net20/Antlr3.Runtime.dll</NCalcAntlrRuntimeAssembly>
     <NCalcAntlrRuntimeAssembly Condition="'$(TargetFramework)' == 'netstandard2.0'">$(NuGetPackageRoot)antlr3.runtime/3.5.1/lib/netstandard1.1/Antlr3.Runtime.dll</NCalcAntlrRuntimeAssembly>
+    <NCalcBuildToolsProject>$(MSBuildThisFileDirectory)../build/NCalc.BuildTools/NCalc.BuildTools.csproj</NCalcBuildToolsProject>
+    <NCalcBuildToolsAssembly>$(MSBuildThisFileDirectory)../build/NCalc.BuildTools/bin/Release/net10.0/NCalc.BuildTools.dll</NCalcBuildToolsAssembly>
   </PropertyGroup>
 
   <Target Name="MergeAntlrRuntimeIntoNCalc" AfterTargets="Build" Condition="'$(Configuration)' == 'Release' and '$(TargetFramework)' != ''">
@@ -21,5 +23,13 @@
       OutputFile="$(TargetPath)" />
 
     <Delete Files="$(OutDir)Antlr3.Runtime.dll" Condition="Exists('$(OutDir)Antlr3.Runtime.dll')" />
+  </Target>
+
+  <Target Name="BuildNCalcBuildTools" Inputs="$(NCalcBuildToolsProject);$(MSBuildThisFileDirectory)../build/NCalc.BuildTools/Program.cs" Outputs="$(NCalcBuildToolsAssembly)">
+    <Exec Command="dotnet build &quot;$(NCalcBuildToolsProject)&quot; --configuration Release --nologo" />
+  </Target>
+
+  <Target Name="RestoreNet35AntlrFileStreamCompatibility" AfterTargets="MergeAntlrRuntimeIntoNCalc" DependsOnTargets="BuildNCalcBuildTools" Condition="'$(Configuration)' == 'Release' and '$(TargetFramework)' == 'net35'">
+    <Exec Command="dotnet &quot;$(NCalcBuildToolsAssembly)&quot; restore-net35-antlr-filestream &quot;$(TargetPath)&quot; &quot;$(NCalcStrongNameKeyFile)&quot;" />
   </Target>
 </Project>

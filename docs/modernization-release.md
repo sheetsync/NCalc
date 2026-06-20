@@ -1,6 +1,6 @@
 # Modernization Release Notes
 
-This branch is the release-infrastructure lane for the NCalc modernization stack. It is intended to land after the SDK-style .NET Standard 2.0 project conversion and the modern test-project conversion.
+These notes describe the release infrastructure for the NCalc modernization stack. They assume the SDK-style .NET Standard 2.0 project conversion, modern test-project conversion, expanded characterization coverage, and compatibility gates are part of the release line.
 
 ## Stack Order
 
@@ -8,7 +8,8 @@ This branch is the release-infrastructure lane for the NCalc modernization stack
 2. Port the test project to a modern SDK-style test runner.
 3. Expand characterization coverage while preserving existing behavior.
 4. Add numeric edge-case and API-surface coverage.
-5. Add this build, package, and release infrastructure.
+5. Add build, package, and release infrastructure.
+6. Harden package compatibility for the embedded ANTLR surface and major-version strong-name identity change.
 
 ## Local Validation
 
@@ -39,7 +40,7 @@ Release infrastructure changes should not be treated as passing until the branch
 - successful workflow YAML parsing or equivalent linting;
 - successful local validation for commands available on the current stack;
 - explicit documentation of any stack dependency that prevents full validation;
-- no runtime-source changes in this release-infrastructure lane.
+- runtime-source and build-tool changes are documented, compatibility-focused, and covered by validation gates.
 
 ## Package Identity
 
@@ -78,7 +79,7 @@ For non-release CI, the quality-gates workflow can generate an ephemeral key whe
 
 ## Package Validation And Restore Locking
 
-Package validation is enabled in the release gate against the `NCalc` `1.3.8` baseline. The package compatibility script adds checks that SDK package validation does not cover, including strong-name token, assembly version, package major version, license metadata, embedded ANTLR surface, and parser/lexer consumer smoke for legacy source patterns such as non-generic `ParserRuleReturnScope`.
+Package validation is enabled in the release gate against the `NCalc` `1.3.8` baseline. The package compatibility script adds checks that SDK package validation does not cover, including strong-name token, assembly version, package major version, license metadata, embedded ANTLR surface, and parser/lexer consumer smoke for legacy source patterns such as non-generic `ParserRuleReturnScope` and derived `ANTLRFileStream` consumers.
 
 Restore lock files are still intentionally deferred. Generate and review `packages.lock.json` only after the dependency set has settled; do not check in a hand-written lock file.
 

@@ -65,12 +65,11 @@ namespace NCalc.Tests
                 Assert.AreEqual(filePath, stream.SourceName);
                 Assert.AreEqual(3, stream.Count);
                 Assert.AreEqual("abc", stream.Substring(0, 3));
-                FileInfo fileInfo = new FileInfo(filePath);
                 LegacyAntlrFileStream derivedStream = new LegacyAntlrFileStream();
-                Assert.AreEqual(fileInfo.Length, derivedStream.ReadFileLength(fileInfo));
 
                 derivedStream.Load(filePath, Encoding.UTF8);
-                Assert.AreEqual(filePath, derivedStream.SourceName);
+                Assert.IsNull(derivedStream.SourceName);
+                Assert.AreEqual(3, derivedStream.Count);
             }
             finally
             {
@@ -251,10 +250,6 @@ namespace NCalc.Tests
 
         private sealed class LegacyAntlrFileStream : ANTLRFileStream
         {
-            public long ReadFileLength(FileInfo file)
-            {
-                return GetFileLength(file);
-            }
         }
 
         private static void AssertLegacyTokenValue(int expectedValue, int actualValue)

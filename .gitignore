@@ -2,6 +2,12 @@
 [Bb]in/
 [Oo]bj/
 [Bb]uild/
+!build/
+!build/NCalc.BuildTools/
+!build/NCalc.BuildTools/*.cs
+!build/NCalc.BuildTools/*.csproj
+build/NCalc.BuildTools/[Bb]in/
+build/NCalc.BuildTools/[Oo]bj/
 artifacts/
 TestResults/
 _Package/

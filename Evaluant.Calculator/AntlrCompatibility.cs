@@ -72,11 +72,13 @@ namespace Antlr.Runtime
 
         public ANTLRFileStream(string fileName)
         {
+            this.fileName = fileName;
             Load(fileName, null);
         }
 
         public ANTLRFileStream(string fileName, Encoding encoding)
         {
+            this.fileName = fileName;
             Load(fileName, encoding);
         }
 
@@ -84,7 +86,6 @@ namespace Antlr.Runtime
 
         public virtual void Load(string fileName, Encoding encoding)
         {
-            this.fileName = fileName;
             string text = encoding == null ? File.ReadAllText(fileName) : File.ReadAllText(fileName, encoding);
 
             data = text.ToCharArray();
@@ -92,11 +93,6 @@ namespace Antlr.Runtime
             p = 0;
             Line = 1;
             CharPositionInLine = 0;
-        }
-
-        protected virtual long GetFileLength(FileInfo file)
-        {
-            return file.Length;
         }
     }
 #endif

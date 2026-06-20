@@ -185,7 +185,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	partial void LeaveRule(string ruleName, int ruleIndex);
 
 	#region Rules
-	public class ncalcExpression_return : ParserRuleReturnScope<IToken>, IAstRuleReturnScope<CommonTree>
+	public class ncalcExpression_return : ParserRuleReturnScope, IAstRuleReturnScope<CommonTree>
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
@@ -263,7 +263,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	}
 	// $ANTLR end "ncalcExpression"
 
-	public class logicalExpression_return : ParserRuleReturnScope<IToken>, IAstRuleReturnScope<CommonTree>
+	public class logicalExpression_return : ParserRuleReturnScope, IAstRuleReturnScope<CommonTree>
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
@@ -392,7 +392,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	}
 	// $ANTLR end "logicalExpression"
 
-	public class conditionalExpression_return : ParserRuleReturnScope<IToken>, IAstRuleReturnScope<CommonTree>
+	public class conditionalExpression_return : ParserRuleReturnScope, IAstRuleReturnScope<CommonTree>
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
@@ -533,7 +533,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	}
 	// $ANTLR end "conditionalExpression"
 
-	public class booleanAndExpression_return : ParserRuleReturnScope<IToken>, IAstRuleReturnScope<CommonTree>
+	public class booleanAndExpression_return : ParserRuleReturnScope, IAstRuleReturnScope<CommonTree>
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
@@ -674,7 +674,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	}
 	// $ANTLR end "booleanAndExpression"
 
-	public class bitwiseOrExpression_return : ParserRuleReturnScope<IToken>, IAstRuleReturnScope<CommonTree>
+	public class bitwiseOrExpression_return : ParserRuleReturnScope, IAstRuleReturnScope<CommonTree>
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
@@ -805,7 +805,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	}
 	// $ANTLR end "bitwiseOrExpression"
 
-	public class bitwiseXOrExpression_return : ParserRuleReturnScope<IToken>, IAstRuleReturnScope<CommonTree>
+	public class bitwiseXOrExpression_return : ParserRuleReturnScope, IAstRuleReturnScope<CommonTree>
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
@@ -936,7 +936,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	}
 	// $ANTLR end "bitwiseXOrExpression"
 
-	public class bitwiseAndExpression_return : ParserRuleReturnScope<IToken>, IAstRuleReturnScope<CommonTree>
+	public class bitwiseAndExpression_return : ParserRuleReturnScope, IAstRuleReturnScope<CommonTree>
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
@@ -1067,7 +1067,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	}
 	// $ANTLR end "bitwiseAndExpression"
 
-	public class equalityExpression_return : ParserRuleReturnScope<IToken>, IAstRuleReturnScope<CommonTree>
+	public class equalityExpression_return : ParserRuleReturnScope, IAstRuleReturnScope<CommonTree>
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
@@ -1270,7 +1270,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	}
 	// $ANTLR end "equalityExpression"
 
-	public class relationalExpression_return : ParserRuleReturnScope<IToken>, IAstRuleReturnScope<CommonTree>
+	public class relationalExpression_return : ParserRuleReturnScope, IAstRuleReturnScope<CommonTree>
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
@@ -1499,7 +1499,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	}
 	// $ANTLR end "relationalExpression"
 
-	public class shiftExpression_return : ParserRuleReturnScope<IToken>, IAstRuleReturnScope<CommonTree>
+	public class shiftExpression_return : ParserRuleReturnScope, IAstRuleReturnScope<CommonTree>
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
@@ -1682,7 +1682,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	}
 	// $ANTLR end "shiftExpression"
 
-	public class additiveExpression_return : ParserRuleReturnScope<IToken>, IAstRuleReturnScope<CommonTree>
+	public class additiveExpression_return : ParserRuleReturnScope, IAstRuleReturnScope<CommonTree>
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
@@ -1865,7 +1865,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	}
 	// $ANTLR end "additiveExpression"
 
-	public class multiplicativeExpression_return : ParserRuleReturnScope<IToken>, IAstRuleReturnScope<CommonTree>
+	public class multiplicativeExpression_return : ParserRuleReturnScope, IAstRuleReturnScope<CommonTree>
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
@@ -2073,7 +2073,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	}
 	// $ANTLR end "multiplicativeExpression"
 
-	public class unaryExpression_return : ParserRuleReturnScope<IToken>, IAstRuleReturnScope<CommonTree>
+	public class unaryExpression_return : ParserRuleReturnScope, IAstRuleReturnScope<CommonTree>
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
@@ -2288,7 +2288,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	}
 	// $ANTLR end "unaryExpression"
 
-	public class primaryExpression_return : ParserRuleReturnScope<IToken>, IAstRuleReturnScope<CommonTree>
+	public class primaryExpression_return : ParserRuleReturnScope, IAstRuleReturnScope<CommonTree>
 	{
 		public LogicalExpression value;
 		private CommonTree _tree;
@@ -2486,7 +2486,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	}
 	// $ANTLR end "primaryExpression"
 
-	public class value_return : ParserRuleReturnScope<IToken>, IAstRuleReturnScope<CommonTree>
+	public class value_return : ParserRuleReturnScope, IAstRuleReturnScope<CommonTree>
 	{
 		public ValueExpression value;
 		private CommonTree _tree;
@@ -2699,7 +2699,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	}
 	// $ANTLR end "value"
 
-	public class identifier_return : ParserRuleReturnScope<IToken>, IAstRuleReturnScope<CommonTree>
+	public class identifier_return : ParserRuleReturnScope, IAstRuleReturnScope<CommonTree>
 	{
 		public Identifier value;
 		private CommonTree _tree;
@@ -2816,7 +2816,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	}
 	// $ANTLR end "identifier"
 
-	public class expressionList_return : ParserRuleReturnScope<IToken>, IAstRuleReturnScope<CommonTree>
+	public class expressionList_return : ParserRuleReturnScope, IAstRuleReturnScope<CommonTree>
 	{
 		public List<LogicalExpression> value;
 		private CommonTree _tree;
@@ -2947,7 +2947,7 @@ public partial class NCalcParser : Antlr.Runtime.Parser
 	}
 	// $ANTLR end "expressionList"
 
-	public class arguments_return : ParserRuleReturnScope<IToken>, IAstRuleReturnScope<CommonTree>
+	public class arguments_return : ParserRuleReturnScope, IAstRuleReturnScope<CommonTree>
 	{
 		public List<LogicalExpression> value;
 		private CommonTree _tree;

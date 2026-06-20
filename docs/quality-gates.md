@@ -124,7 +124,7 @@ It verifies:
 - the current package declares license expression `MIT`;
 - `Antlr3.Runtime` is not a package dependency;
 - the `net35` and `netstandard2.0` assemblies embed public `Antlr.Runtime.*`, `NCalcLexer`, `NCalcParser`, and parser return-scope types;
-- a parser/lexer consumer can compile and run against the packed `net35` assembly;
+- a parser/lexer consumer using the legacy non-generic `ParserRuleReturnScope` source pattern can compile and run against the packed `net35` assembly;
 - a consumer compiled against the legacy package references the old token, documenting why a new key is a major-version binary identity break.
 
 ## Consumer Smoke

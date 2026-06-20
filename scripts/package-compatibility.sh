@@ -187,6 +187,8 @@ validate_current_package_shape() {
     assert_embedded_type "${assembly_path}" "NCalcLexer"
     assert_embedded_type "${assembly_path}" "NCalcParser"
     assert_embedded_type "${assembly_path}" "NCalcParser/ncalcExpression_return"
+    assert_embedded_type "${assembly_path}" "Antlr.Runtime.ParserRuleReturnScope"
+    assert_embedded_type "${assembly_path}" 'Antlr.Runtime.ParserRuleReturnScope`1'
     assert_embedded_type "${assembly_path}" "Antlr.Runtime.IAstRuleReturnScope"
     assert_embedded_type "${assembly_path}" "Antlr.Runtime.Tree.CommonTree"
   done < <(current_assemblies)
@@ -299,7 +301,7 @@ assert_embedded_type() {
   local assembly_path="$1"
   local type_name="$2"
 
-  if ! monodis --typedef "${assembly_path}" | grep -q "${type_name}"; then
+  if ! monodis --typedef "${assembly_path}" | awk -v type_name="${type_name}" '$2 == type_name { found = 1 } END { exit(found ? 0 : 1) }'; then
     echo "Expected type ${type_name} in ${assembly_path}." >&2
     exit 1
   fi
@@ -392,12 +394,18 @@ internal static class ParserSmoke
         NCalcLexer lexer = new NCalcLexer(new ANTLRStringStream("1 + 2"));
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         NCalcParser parser = new NCalcParser(tokens);
-        NCalcParser.ncalcExpression_return parserResult = parser.ncalcExpression();
-        CommonTree tree = parserResult.Tree as CommonTree;
+        ParserRuleReturnScope parserResult = parser.ncalcExpression();
+        NCalcParser.ncalcExpression_return typedResult = (NCalcParser.ncalcExpression_return)parserResult;
+        CommonTree tree = typedResult.Tree as CommonTree;
 
         if (tree == null)
         {
             throw new InvalidOperationException("Expected parser to return a CommonTree.");
+        }
+
+        if (parserResult.Start == null || parserResult.Stop == null)
+        {
+            throw new InvalidOperationException("Expected parser return scope to expose token boundaries.");
         }
 
         Console.WriteLine("Parser smoke passed.");

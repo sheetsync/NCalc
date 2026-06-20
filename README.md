@@ -74,7 +74,7 @@ NCalc 2.x is a major release because the strong-name signing key changed. The ol
 
 Source-compatible consumers can upgrade by rebuilding against the 2.x package. Already-compiled .NET Framework applications and libraries that reference the old strong-name identity must be recompiled; binding redirects cannot redirect one public key token to another.
 
-The NuGet package keeps the ANTLR runtime surface embedded in `NCalc.dll`, matching the historical package shape. That means parser and lexer consumers can continue to use public types such as `NCalcLexer`, `NCalcParser`, and `Antlr.Runtime.Tree.CommonTree` from the package without adding a separate ANTLR dependency.
+The NuGet package keeps the ANTLR runtime surface embedded in `NCalc.dll`, matching the historical package shape. Parser and lexer consumers can continue to use public types such as `NCalcLexer`, `NCalcParser`, `Antlr.Runtime.ParserRuleReturnScope`, and `Antlr.Runtime.Tree.CommonTree` from the package without adding a separate ANTLR dependency.
 
 ## Validation
 

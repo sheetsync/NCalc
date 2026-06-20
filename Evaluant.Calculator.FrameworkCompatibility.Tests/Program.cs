@@ -1,6 +1,8 @@
 using System;
 using System.Globalization;
 using System.Threading;
+using Antlr.Runtime;
+using Antlr.Runtime.Tree;
 using NCalc.Domain;
 using DomainValueType = NCalc.Domain.ValueType;
 
@@ -24,6 +26,7 @@ namespace NCalc.FrameworkCompatibility.Tests
                 Thread.CurrentThread.CurrentUICulture = new CultureInfo("fr-FR");
 
                 RunExpressionCases();
+                RunParserSurfaceCases();
                 RunNumbersCases();
                 RunDomainCases();
                 RunCallbackCases();
@@ -77,6 +80,30 @@ namespace NCalc.FrameworkCompatibility.Tests
                 expression.Parameters["var1"] = 9.2d;
 
                 AssertObject(11.0m, typeof(decimal), expression.Evaluate());
+            });
+        }
+
+        private static void RunParserSurfaceCases()
+        {
+            Run("ParserNcalcExpression_WithLegacyReturnScopeVariable_DoesExposeAstTree", delegate
+            {
+                NCalcLexer lexer = new NCalcLexer(new ANTLRStringStream("1 + 2"));
+                CommonTokenStream tokens = new CommonTokenStream(lexer);
+                NCalcParser parser = new NCalcParser(tokens);
+
+                ParserRuleReturnScope parserResult = parser.ncalcExpression();
+                IAstRuleReturnScope astResult = (IAstRuleReturnScope)parserResult;
+                CommonTree tree = astResult.Tree as CommonTree;
+
+                if (tree == null)
+                {
+                    throw new InvalidOperationException("Expected legacy parser return scope to expose a CommonTree.");
+                }
+
+                if (parserResult.Start == null || parserResult.Stop == null)
+                {
+                    throw new InvalidOperationException("Expected legacy parser return scope to expose token boundaries.");
+                }
             });
         }
 

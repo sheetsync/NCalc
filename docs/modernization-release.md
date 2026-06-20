@@ -78,7 +78,7 @@ For non-release CI, the quality-gates workflow can generate an ephemeral key whe
 
 ## Package Validation And Restore Locking
 
-Package validation is enabled in the release gate against the `NCalc` `1.3.8` baseline. The package compatibility script adds checks that SDK package validation does not cover, including strong-name token, assembly version, package major version, license metadata, embedded ANTLR surface, and parser/lexer consumer smoke.
+Package validation is enabled in the release gate against the `NCalc` `1.3.8` baseline. The package compatibility script adds checks that SDK package validation does not cover, including strong-name token, assembly version, package major version, license metadata, embedded ANTLR surface, and parser/lexer consumer smoke for legacy source patterns such as non-generic `ParserRuleReturnScope`.
 
 Restore lock files are still intentionally deferred. Generate and review `packages.lock.json` only after the dependency set has settled; do not check in a hand-written lock file.
 

@@ -72,8 +72,9 @@ namespace NCalc.Tests
 
                 if (!String.IsNullOrEmpty(ExpectedMessageFragment))
                 {
-                    Assert.IsTrue(
-                        exception.Message.IndexOf(ExpectedMessageFragment) >= 0,
+                    StringAssert.Contains(
+                        exception.Message,
+                        ExpectedMessageFragment,
                         Name + " message should contain '" + ExpectedMessageFragment + "' but was '" + exception.Message + "'");
                 }
             }

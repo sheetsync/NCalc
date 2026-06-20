@@ -47,7 +47,7 @@ namespace NCalc.Tests
 
             var result = (IList)expression.Evaluate();
 
-            Assert.AreEqual(3, result.Count);
+            Assert.HasCount(3, result);
             Assert.AreEqual(11, result[0]);
             Assert.AreEqual(22, result[1]);
             Assert.AreEqual(33, result[2]);
@@ -75,7 +75,7 @@ namespace NCalc.Tests
 
             var result = (IList)expression.Evaluate();
 
-            Assert.AreEqual(3, result.Count);
+            Assert.HasCount(3, result);
             Assert.AreEqual(11, result[0]);
             Assert.AreEqual(12, result[1]);
             Assert.AreEqual(13, result[2]);
@@ -89,7 +89,7 @@ namespace NCalc.Tests
 
             var result = (IList)expression.Evaluate();
 
-            Assert.AreEqual(0, result.Count);
+            Assert.IsEmpty(result);
         }
 
         [TestMethod]
@@ -100,7 +100,7 @@ namespace NCalc.Tests
 
             var result = (IList)expression.Evaluate();
 
-            Assert.AreEqual(0, result.Count);
+            Assert.IsEmpty(result);
         }
 
         [TestMethod]

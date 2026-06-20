@@ -6,8 +6,10 @@
 
 set -euo pipefail
 
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly REPOSITORY_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
+REPOSITORY_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+readonly REPOSITORY_ROOT
 readonly PACKAGE_SOURCE="${1:-${REPOSITORY_ROOT}/artifacts/packages}"
 readonly PACKAGE_VERSION="${2:-${PACKAGE_VERSION:-}}"
 readonly BASELINE_VERSION="${API_COMPAT_BASELINE_VERSION:-1.3.8}"
@@ -17,7 +19,14 @@ readonly EXPECTED_ASSEMBLY_VERSION="${NCALC_EXPECTED_ASSEMBLY_VERSION:-2.0.0.0}"
 readonly EXPECTED_LICENSE_EXPRESSION="${NCALC_EXPECTED_LICENSE_EXPRESSION:-MIT}"
 readonly LEGACY_PUBLIC_KEY_TOKEN="${NCALC_LEGACY_PUBLIC_KEY_TOKEN:-973cde3f1cafed03}"
 readonly PACKAGE_IDENTITY_MODE="${NCALC_PACKAGE_IDENTITY_MODE:-major}"
-readonly WORK_ROOT="${PACKAGE_COMPATIBILITY_ROOT:-$(mktemp -d "${TMPDIR:-/tmp}/ncalc-package-compatibility.XXXXXX")}"
+readonly MINIMUM_MAJOR_PACKAGE_VERSION="${NCALC_MINIMUM_MAJOR_PACKAGE_VERSION:-2}"
+if [[ -z "${PACKAGE_COMPATIBILITY_ROOT:-}" ]]; then
+  WORK_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/ncalc-package-compatibility.XXXXXX")"
+else
+  WORK_ROOT="${PACKAGE_COMPATIBILITY_ROOT}"
+fi
+
+readonly WORK_ROOT
 readonly CURRENT_EXTRACT_ROOT="${WORK_ROOT}/current"
 readonly BASELINE_EXTRACT_ROOT="${WORK_ROOT}/baseline"
 
@@ -160,6 +169,7 @@ validate_current_package_shape() {
   local nuspec_path
   nuspec_path="$(find "${CURRENT_EXTRACT_ROOT}" -maxdepth 1 -name '*.nuspec' -print -quit)"
   require_file "${nuspec_path}"
+  assert_package_version_metadata "${nuspec_path}"
   assert_license_metadata "${nuspec_path}"
 
   if grep -q 'Antlr3.Runtime' "${nuspec_path}"; then
@@ -180,6 +190,38 @@ validate_current_package_shape() {
     assert_embedded_type "${assembly_path}" "Antlr.Runtime.IAstRuleReturnScope"
     assert_embedded_type "${assembly_path}" "Antlr.Runtime.Tree.CommonTree"
   done < <(current_assemblies)
+}
+
+assert_package_version_metadata() {
+  local nuspec_path="$1"
+  local nuspec_version
+  local package_major_version
+
+  nuspec_version="$(grep -Eo '<version>[^<]+</version>' "${nuspec_path}" | sed -E 's#</?version>##g' | head -n 1)"
+
+  if [[ -n "${PACKAGE_VERSION}" && "${nuspec_version}" != "${PACKAGE_VERSION}" ]]; then
+    echo "Expected NuGet package version ${PACKAGE_VERSION} in ${nuspec_path}, got ${nuspec_version:-<none>}." >&2
+    exit 1
+  fi
+
+  package_major_version="$(extract_package_major_version "${nuspec_version}")"
+
+  if [[ "${PACKAGE_IDENTITY_MODE}" == "major" && "${package_major_version}" -lt "${MINIMUM_MAJOR_PACKAGE_VERSION}" ]]; then
+    echo "Package version ${nuspec_version} is invalid for a new-key major release. Expected major version ${MINIMUM_MAJOR_PACKAGE_VERSION} or later." >&2
+    exit 1
+  fi
+}
+
+extract_package_major_version() {
+  local package_version="$1"
+
+  if [[ "${package_version}" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)([-+][0-9A-Za-z.-]+)?$ ]]; then
+    printf '%s\n' "${BASH_REMATCH[1]}"
+    return
+  fi
+
+  echo "Unsupported package version format: ${package_version}" >&2
+  exit 2
 }
 
 assert_license_metadata() {

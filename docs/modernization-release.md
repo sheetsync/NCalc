@@ -27,9 +27,9 @@ dotnet test Evaluant.Calculator.Tests/NCalc.Tests.csproj --configuration Release
 dotnet pack Evaluant.Calculator/NCalc.csproj --configuration Release --no-build --output artifacts/packages /p:ContinuousIntegrationBuild=true /p:IncludeSymbols=true /p:SymbolPackageFormat=snupkg
 ```
 
-The pack command should emit both `.nupkg` and `.snupkg` files after the SDK-style project conversion. The current legacy project layout still targets .NET Framework 3.5, so these commands depend on the earlier SDK-style conversion PRs.
+The pack command emits both `.nupkg` and `.snupkg` files after the SDK-style project conversion. These commands depend on the earlier modernization PRs being applied first.
 
-The GitHub CI workflow runs restore, build, and test on Ubuntu, macOS, and Windows. A dedicated Ubuntu quality-gates job runs `scripts/validate.sh`, including signed package creation, package compatibility, API compatibility, coverage, local-feed consumer smoke, and the compatibility harness against both `net35` under Mono and `netstandard2.0` under modern .NET. CI validates the library and modern test project directly because the full solution still contains the legacy `Evaluant.Calculator.Play` .NET Framework 3.5 sample project. Windows remains part of the required gate because the modernization must preserve compatibility expectations for existing .NET Framework consumers.
+The GitHub CI workflow runs restore, build, and test on Ubuntu, macOS, and Windows. A dedicated Ubuntu quality-gates job runs `scripts/validate.sh`, including solution restore/build, signed package creation, package compatibility, API compatibility, coverage, local-feed consumer smoke, and the compatibility harness against both `net35` under Mono and `netstandard2.0` under modern .NET. Windows remains part of the required gate because the modernization must preserve compatibility expectations for existing .NET Framework consumers.
 
 ## Release Quality Gate
 
@@ -55,9 +55,10 @@ The package declares the MIT license expression and the repository contains a ma
 
 The old `NCalc` `1.3.8` strong-name private key is unavailable. Its public key token was `973cde3f1cafed03`, so a newly signed modernization package cannot be binary-compatible for already-compiled strong-name consumers. This release line is therefore `2.0.0` or later, uses assembly version `2.0.0.0`, and uses the new public key token `f59bbff0fd43f598`.
 
-Do not commit private signing keys. Local production-token validation should use the ignored private key for token `f59bbff0fd43f598`:
+Do not commit private signing keys. Local production-token validation should use a private key outside the repository, with token `f59bbff0fd43f598`:
 
 ```sh
+NCalcStrongNameKeyFile=~/.ncalc/signing/NCalc.snk \
 scripts/validate.sh
 ```
 
@@ -69,17 +70,17 @@ NCalcStrongNameKeyFile=/secure/path/NCalc.snk scripts/validate.sh
 
 For temporary non-release validation with a throwaway key, generate an ignored key and set `NCALC_EXPECTED_PUBLIC_KEY_TOKEN` to the generated token. Do not publish a package from a throwaway key.
 
+`scripts/validate.sh` rejects tracked key files and also rejects private-key paths inside the repository, even if the file is ignored. Keep the key in `~/.ncalc/signing`, a secure local directory, or the release runner's temp directory.
+
 GitHub release packaging requires `NCALC_STRONG_NAME_KEY_BASE64`, a base64-encoded `.snk` stored as a repository secret. The release workflow decodes that secret to the runner temp directory and fails if the public key token does not match `f59bbff0fd43f598`.
 
 For non-release CI, the quality-gates workflow can generate an ephemeral key when the secret is unavailable. That still proves the package is signable, repacked, and source-compatible, while the release workflow remains the authority for the stable production token.
 
-## Deferred Package Validation And Restore Locking
+## Package Validation And Restore Locking
 
-Package validation settings are intentionally not enabled in this lane yet. They should be added after the SDK-style project exists and a real package baseline/versioning policy is chosen; enabling package validation without a baseline here would either be untestable on this branch or risk noisy validation with no compatibility signal.
+Package validation is enabled in the release gate against the `NCalc` `1.3.8` baseline. The package compatibility script adds checks that SDK package validation does not cover, including strong-name token, assembly version, package major version, license metadata, embedded ANTLR surface, and parser/lexer consumer smoke.
 
-Restore lock files are also intentionally deferred. Generate and review `packages.lock.json` after PR1 and PR2 have finalized the SDK-style project references and test dependencies; do not check in a hand-written lock file.
-
-Solution-wide validation should be restored after the sample application is modernized, removed from the solution, or moved behind an explicit Windows/Mono-only gate.
+Restore lock files are still intentionally deferred. Generate and review `packages.lock.json` only after the dependency set has settled; do not check in a hand-written lock file.
 
 ## GitHub Release Flow
 

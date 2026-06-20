@@ -2,11 +2,18 @@
 
 set -euo pipefail
 
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly REPOSITORY_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
+REPOSITORY_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+readonly REPOSITORY_ROOT
 readonly PACKAGE_SOURCE="${1:-${REPOSITORY_ROOT}/artifacts/packages}"
 readonly PACKAGE_VERSION="${2:-${PACKAGE_VERSION:-}}"
-readonly SMOKE_ROOT="${SMOKE_ROOT:-$(mktemp -d "${TMPDIR:-/tmp}/ncalc-consumer-smoke.XXXXXX")}"
+
+if [[ -z "${SMOKE_ROOT:-}" ]]; then
+  SMOKE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/ncalc-consumer-smoke.XXXXXX")"
+fi
+
+readonly SMOKE_ROOT
 readonly SMOKE_PROJECT="${SMOKE_ROOT}/NCalc.ConsumerSmoke/NCalc.ConsumerSmoke.csproj"
 readonly SMOKE_PACKAGES_DIR="${SMOKE_ROOT}/packages"
 

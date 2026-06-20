@@ -57,6 +57,17 @@ jobs:
             exit 1
           fi
 
+          if [[ ! "$package_version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)([-+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Unsupported package version format: $package_version" >&2
+            exit 2
+          fi
+
+          package_major_version="${BASH_REMATCH[1]}"
+          if [ "$package_major_version" -lt 2 ]; then
+            echo "NCalc uses a new strong-name key, so release package versions must be 2.0.0 or later." >&2
+            exit 1
+          fi
+
           echo "PACKAGE_VERSION=$package_version" >> "$GITHUB_ENV"
           echo "package-version=$package_version" >> "$GITHUB_OUTPUT"
 

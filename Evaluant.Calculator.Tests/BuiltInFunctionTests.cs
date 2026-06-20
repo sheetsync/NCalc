@@ -124,7 +124,7 @@ namespace NCalc.Tests
         [TestMethod]
         public void InFunction_WithMatchBeforeInvalidExpression_DoesNotEvaluateRemainingArguments()
         {
-            Assert.AreEqual(true, TestSupport.Evaluate("in(4, 1, 2, 4, 1 / 0)"));
+            Assert.IsTrue((bool)TestSupport.Evaluate("in(4, 1, 2, 4, 1 / 0)"));
         }
     }
 }

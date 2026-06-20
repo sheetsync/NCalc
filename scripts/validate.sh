@@ -2,8 +2,10 @@
 
 set -euo pipefail
 
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly REPOSITORY_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
+REPOSITORY_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+readonly REPOSITORY_ROOT
 readonly CONFIGURATION="${CONFIGURATION:-Release}"
 readonly COVERAGE_RESULTS_DIR="${COVERAGE_RESULTS_DIR:-${REPOSITORY_ROOT}/artifacts/coverage}"
 readonly PACKAGE_OUTPUT_DIR="${PACKAGE_OUTPUT_DIR:-${REPOSITORY_ROOT}/artifacts/packages}"
@@ -12,10 +14,13 @@ readonly API_COMPAT_BASELINE_VERSION="${API_COMPAT_BASELINE_VERSION:-1.3.8}"
 readonly NUGET_PACKAGE_SOURCE="${NUGET_PACKAGE_SOURCE:-https://api.nuget.org/v3/index.json}"
 readonly MINIMUM_LINE_COVERAGE="${MINIMUM_LINE_COVERAGE:-0.93}"
 readonly MINIMUM_BRANCH_COVERAGE="${MINIMUM_BRANCH_COVERAGE:-0.91}"
-readonly DEFAULT_LOCAL_STRONG_NAME_KEY="${REPOSITORY_ROOT}/build/NCalc.snk"
+readonly PACKAGE_IDENTITY_MODE="${NCALC_PACKAGE_IDENTITY_MODE:-major}"
+readonly MINIMUM_MAJOR_PACKAGE_VERSION="${NCALC_MINIMUM_MAJOR_PACKAGE_VERSION:-2}"
+readonly DEFAULT_LOCAL_STRONG_NAME_KEY="${HOME}/.ncalc/signing/NCalc.snk"
 readonly CORE_PROJECT="${CORE_PROJECT:-Evaluant.Calculator/NCalc.csproj}"
 readonly TEST_PROJECT="${TEST_PROJECT:-Evaluant.Calculator.Tests/NCalc.Tests.csproj}"
 readonly FRAMEWORK_COMPATIBILITY_PROJECT="${FRAMEWORK_COMPATIBILITY_PROJECT:-Evaluant.Calculator.FrameworkCompatibility.Tests/NCalc.FrameworkCompatibility.Tests.csproj}"
+readonly SOLUTION_FILE="${SOLUTION_FILE:-NCalc.sln}"
 
 main() {
   cd "${REPOSITORY_ROOT}"
@@ -23,10 +28,13 @@ main() {
   require_command dotnet
   require_command python3
   require_sdk_style_core_project
+  require_no_tracked_signing_keys
+  validate_package_version_policy "${PACKAGE_VERSION}"
   prepare_strong_name_key
 
   restore_projects
   build_projects
+  build_solution
   run_framework_compatibility_tests
   run_tests_with_coverage
   pack_package
@@ -62,6 +70,45 @@ MESSAGE
   echo "SDK-style core project detected."
 }
 
+require_no_tracked_signing_keys() {
+  print_section "Checking signing material guard"
+
+  local tracked_signing_files
+  tracked_signing_files="$(git ls-files '*.snk' '*.pfx' '*.p12' '*.pem')"
+
+  if [[ -n "${tracked_signing_files}" ]]; then
+    echo "Private signing material must not be tracked:" >&2
+    echo "${tracked_signing_files}" >&2
+    exit 1
+  fi
+
+  echo "No tracked signing key files detected."
+}
+
+validate_package_version_policy() {
+  local package_version="$1"
+  local package_major_version
+
+  package_major_version="$(extract_package_major_version "${package_version}")"
+
+  if [[ "${PACKAGE_IDENTITY_MODE}" == "major" && "${package_major_version}" -lt "${MINIMUM_MAJOR_PACKAGE_VERSION}" ]]; then
+    echo "Package version ${package_version} is invalid for a new-key major release. Expected major version ${MINIMUM_MAJOR_PACKAGE_VERSION} or later." >&2
+    exit 1
+  fi
+}
+
+extract_package_major_version() {
+  local package_version="$1"
+
+  if [[ "${package_version}" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)([-+][0-9A-Za-z.-]+)?$ ]]; then
+    printf '%s\n' "${BASH_REMATCH[1]}"
+    return
+  fi
+
+  echo "Unsupported package version format: ${package_version}" >&2
+  exit 2
+}
+
 prepare_strong_name_key() {
   print_section "Checking strong-name signing key"
 
@@ -88,6 +135,20 @@ MESSAGE
     exit 2
   fi
 
+  NCalcStrongNameKeyFile="$(cd "$(dirname "${NCalcStrongNameKeyFile}")" && pwd)/$(basename "${NCalcStrongNameKeyFile}")"
+  export NCalcStrongNameKeyFile
+
+  if [[ "${NCalcStrongNameKeyFile}" == "${REPOSITORY_ROOT}/"* ]]; then
+    cat >&2 <<MESSAGE
+NCalcStrongNameKeyFile points inside the repository:
+  ${NCalcStrongNameKeyFile}
+
+Keep private signing material outside the worktree. The default local path is:
+  ${DEFAULT_LOCAL_STRONG_NAME_KEY}
+MESSAGE
+    exit 2
+  fi
+
   echo "Using private strong-name key from ${NCalcStrongNameKeyFile}."
 }
 
@@ -103,6 +164,13 @@ build_projects() {
   dotnet build "${CORE_PROJECT}" --configuration "${CONFIGURATION}" --no-restore
   dotnet build "${TEST_PROJECT}" --configuration "${CONFIGURATION}" --no-restore
   dotnet build "${FRAMEWORK_COMPATIBILITY_PROJECT}" --configuration "${CONFIGURATION}" --no-restore
+}
+
+build_solution() {
+  print_section "Building solution"
+
+  dotnet restore "${SOLUTION_FILE}"
+  dotnet build "${SOLUTION_FILE}" --configuration "${CONFIGURATION}" --no-restore
 }
 
 run_framework_compatibility_tests() {

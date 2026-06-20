@@ -24,11 +24,13 @@ Required gates:
 
 The `NCalc` `1.3.8` package was signed with public key token `973cde3f1cafed03`. The private key for that token is not available, so the modernization release is a major-version package identity break even when source and runtime behavior are preserved.
 
-The new major-version key generated for this release line has public key token `f59bbff0fd43f598`. Private key material must never be committed. The repository ignores `.snk`, `.pfx`, `.p12`, and `.pem` files, and `scripts/validate.sh` expects one of these signing paths:
+The new major-version key generated for this release line has public key token `f59bbff0fd43f598`. Private key material must never be committed or stored inside the worktree. The repository ignores `.snk`, `.pfx`, `.p12`, and `.pem` files, and `scripts/validate.sh` expects one of these signing paths:
 
-- local production-token validation: the ignored private key for token `f59bbff0fd43f598` at `build/NCalc.snk`, or `NCalcStrongNameKeyFile=/secure/path/NCalc.snk`;
+- local production-token validation: the ignored private key for token `f59bbff0fd43f598` at `~/.ncalc/signing/NCalc.snk`, or `NCalcStrongNameKeyFile=/secure/path/NCalc.snk`;
 - local throwaway validation: any ignored `.snk`, plus `NCALC_EXPECTED_PUBLIC_KEY_TOKEN` set to that key's token;
 - release CI: a repository secret named `NCALC_STRONG_NAME_KEY_BASE64`, containing the base64-encoded private `.snk`.
+
+`scripts/validate.sh` rejects tracked signing files and rejects `NCalcStrongNameKeyFile` values that resolve inside the repository, even if those files are ignored by Git.
 
 Because the public key token changes, already-compiled .NET Framework consumers that reference `NCalc, PublicKeyToken=973cde3f1cafed03` must rebuild against the major-version package. Binding redirects cannot redirect one strong-name public key token to another. The package compatibility gate records this deliberately as a major-version identity break rather than pretending binary compatibility exists.
 
@@ -48,14 +50,16 @@ The script validates the production package and test project directly:
 4. `dotnet build Evaluant.Calculator/NCalc.csproj --configuration Release --no-restore`
 5. `dotnet build Evaluant.Calculator.Tests/NCalc.Tests.csproj --configuration Release --no-restore`
 6. `dotnet build Evaluant.Calculator.FrameworkCompatibility.Tests/NCalc.FrameworkCompatibility.Tests.csproj --configuration Release --no-restore`
-7. Compatibility assertions against the `netstandard2.0` asset using `dotnet run`
-8. Compatibility assertions against the `net35` asset using `mono` on Unix-like systems or the `.exe` directly on Windows
-9. `dotnet test Evaluant.Calculator.Tests/NCalc.Tests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage"`
-10. coverage threshold enforcement, currently line coverage >= 93% and branch coverage >= 91%
-11. `dotnet pack Evaluant.Calculator/NCalc.csproj --configuration Release --no-build`
-12. package compatibility validation for signing, license metadata, embedded ANTLR, parser source compatibility, and the deliberate major-version identity break
-13. SDK package validation with `EnablePackageValidation=true` after hydrating the `NCalc` `1.3.8` baseline package
-14. A modern .NET consumer smoke from the packed local package
+7. `dotnet restore NCalc.sln`
+8. `dotnet build NCalc.sln --configuration Release --no-restore`
+9. Compatibility assertions against the `netstandard2.0` asset using `dotnet run`
+10. Compatibility assertions against the `net35` asset using `mono` on Unix-like systems or the `.exe` directly on Windows
+11. `dotnet test Evaluant.Calculator.Tests/NCalc.Tests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage"`
+12. coverage threshold enforcement, currently line coverage >= 93% and branch coverage >= 91%
+13. `dotnet pack Evaluant.Calculator/NCalc.csproj --configuration Release --no-build`
+14. package compatibility validation for package version, signing, license metadata, embedded ANTLR, parser source compatibility, and the deliberate major-version identity break
+15. SDK package validation with `EnablePackageValidation=true` after hydrating the `NCalc` `1.3.8` baseline package
+16. A modern .NET consumer smoke from the packed local package
 
 Coverage output is written to `artifacts/coverage` and must include `coverage.cobertura.xml`. `scripts/validate.sh` fails if line coverage falls below `93%` or branch coverage falls below `91%`. These thresholds sit below the current measured coverage so they prevent accidental erosion while leaving a small margin for harmless branch-shape changes.
 
@@ -63,7 +67,7 @@ The Framework compatibility harness intentionally uses a plain console runner ra
 
 Local validation packs `NCalc` as `2.0.0-qualitygates` by default. This avoids NuGet reusing a globally cached `NCalc` `1.3.8` baseline package during consumer smoke tests and reflects the major-version package identity change. Override with `PACKAGE_VERSION=...` only when the replacement version is deliberate.
 
-The full legacy `NCalc.sln` still contains `Evaluant.Calculator.Play`, a .NET Framework 3.5 sample project. Solution-wide validation should be re-enabled after that sample project is either modernized, removed from the solution, or gated to Windows/Mono explicitly.
+Because NCalc 2.x uses a new strong-name key, local validation and release packaging reject package versions below `2.0.0` by default.
 
 ## API Compatibility
 

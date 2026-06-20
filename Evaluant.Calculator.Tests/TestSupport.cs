@@ -32,8 +32,9 @@ namespace NCalc.Tests
         public static void StringContains(string text, string expectedText)
         {
             Assert.IsNotNull(text);
-            Assert.IsTrue(
-                text.Contains(expectedText),
+            StringAssert.Contains(
+                text,
+                expectedText,
                 "Expected <" + text + "> to contain <" + expectedText + ">.");
         }
     }

@@ -45,7 +45,7 @@ namespace NCalc.Tests
             Assert.AreEqual(123456, new Expression("123456").Evaluate());
             Assert.AreEqual(new DateTime(2001, 01, 01), new Expression("#01/01/2001#").Evaluate());
             Assert.AreEqual(123.456d, new Expression("123.456").Evaluate());
-            Assert.AreEqual(true, new Expression("true").Evaluate());
+            Assert.IsTrue((bool)new Expression("true").Evaluate());
             Assert.AreEqual("true", new Expression("'true'").Evaluate());
             Assert.AreEqual("azerty", new Expression("'azerty'").Evaluate());
         }
@@ -190,18 +190,18 @@ namespace NCalc.Tests
             ein.Parameters["1"] = 2;
             ein.Parameters["2"] = 5;
 
-            Assert.AreEqual(true, ein.Evaluate());
+            Assert.IsTrue((bool)ein.Evaluate());
 
             var eout = new Expression("in((2 + 2), [1], [2], 1 + 2, 3)");
             eout.Parameters["1"] = 2;
             eout.Parameters["2"] = 5;
 
-            Assert.AreEqual(false, eout.Evaluate());
+            Assert.IsFalse((bool)eout.Evaluate());
 
             // Should work with strings
             var estring = new Expression("in('to' + 'to', 'titi', 'toto')");
 
-            Assert.AreEqual(true, estring.Evaluate());
+            Assert.IsTrue((bool)estring.Evaluate());
 
         }
 
@@ -283,7 +283,7 @@ namespace NCalc.Tests
         [TestMethod]
         public void ShouldNotRoundDecimalValues()
         {
-            Assert.AreEqual(false, new Expression("0 <= -0.6").Evaluate());
+            Assert.IsFalse((bool)new Expression("0 <= -0.6").Evaluate());
         }
 
         [TestMethod]
@@ -518,7 +518,7 @@ namespace NCalc.Tests
                 Assert.IsTrue(args.HasResult);
             };
 
-            Assert.AreEqual(null, e.Evaluate());
+            Assert.IsNull(e.Evaluate());
         }
 
         [TestMethod]
@@ -534,14 +534,14 @@ namespace NCalc.Tests
                 Assert.IsTrue(args.HasResult);
             };
 
-            Assert.AreEqual(null, e.Evaluate());
+            Assert.IsNull(e.Evaluate());
         }
 
         [TestMethod]
         public void ShouldCompareDates()
         {
-            Assert.AreEqual(true, new Expression("#1/1/2009#==#1/1/2009#").Evaluate());
-            Assert.AreEqual(false, new Expression("#2/1/2009#==#1/1/2009#").Evaluate());
+            Assert.IsTrue((bool)new Expression("#1/1/2009#==#1/1/2009#").Evaluate());
+            Assert.IsFalse((bool)new Expression("#2/1/2009#==#1/1/2009#").Evaluate());
         }
 
         [TestMethod]
@@ -573,7 +573,7 @@ namespace NCalc.Tests
         [TestMethod]
         public void ShouldCompareLongValues()
         {
-            Assert.AreEqual(false, new Expression("(0=1500000)||(((0+2200000000)-1500000)<0)").Evaluate());
+            Assert.IsFalse((bool)new Expression("(0=1500000)||(((0+2200000000)-1500000)<0)").Evaluate());
         }
 
         [TestMethod]
@@ -616,7 +616,7 @@ namespace NCalc.Tests
             var e = new Expression("([a] != 0) && ([b]/[a]>2)");
             e.Parameters["a"] = 0;
 
-            Assert.AreEqual(false, e.Evaluate());
+            Assert.IsFalse((bool)e.Evaluate());
         }
 
         [TestMethod]

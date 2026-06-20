@@ -49,7 +49,7 @@ This lane owns shared release metadata in `Directory.Build.props` so the SDK-sty
 
 Packages are configured for deterministic builds, Source Link, repository metadata, and `.snupkg` symbol output once the core project is SDK-style.
 
-No license metadata is declared here because this checkout does not contain a license file or existing license declaration. Add an explicit repository license before publishing a public package version.
+The package declares the MIT license expression and the repository contains a matching `LICENSE` file. This follows the legacy NCalc package's CodePlex license link and the current public NCalc project lineage.
 
 ## Strong-Name Signing
 
@@ -83,7 +83,7 @@ Solution-wide validation should be restored after the sample application is mode
 
 ## GitHub Release Flow
 
-The release workflow builds, tests, packs, uploads the `.nupkg` and `.snupkg` artifacts, and publishes them to NuGet.org when either:
+The release workflow builds, tests, packs, uploads the `.nupkg` and `.snupkg` artifacts, runs a Windows .NET Framework package consumer smoke, and publishes them to NuGet.org when either:
 
 - a GitHub Release is published; or
 - the manual workflow is run with `publish` enabled.

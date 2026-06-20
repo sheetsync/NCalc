@@ -13,6 +13,7 @@ Required gates:
 - A Cobertura coverage report is produced by `dotnet test`.
 - The package builds locally with `dotnet pack`.
 - The package assemblies are strong-name signed.
+- The package declares the MIT NuGet license expression.
 - The package does not expose `Antlr3.Runtime` as a NuGet dependency; the ANTLR runtime surface remains embedded in `NCalc.dll`.
 - Public API changes require explicit approval and a written compatibility note.
 - Framework compatibility tests pass against both the `net35` asset and the `netstandard2.0` asset.
@@ -50,12 +51,13 @@ The script validates the production package and test project directly:
 7. Compatibility assertions against the `netstandard2.0` asset using `dotnet run`
 8. Compatibility assertions against the `net35` asset using `mono` on Unix-like systems or the `.exe` directly on Windows
 9. `dotnet test Evaluant.Calculator.Tests/NCalc.Tests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage"`
-10. `dotnet pack Evaluant.Calculator/NCalc.csproj --configuration Release --no-build`
-11. package compatibility validation for signing, embedded ANTLR, parser source compatibility, and the deliberate major-version identity break
-12. SDK package validation with `EnablePackageValidation=true` after hydrating the `NCalc` `1.3.8` baseline package
-13. A modern .NET consumer smoke from the packed local package
+10. coverage threshold enforcement, currently line coverage >= 93% and branch coverage >= 91%
+11. `dotnet pack Evaluant.Calculator/NCalc.csproj --configuration Release --no-build`
+12. package compatibility validation for signing, license metadata, embedded ANTLR, parser source compatibility, and the deliberate major-version identity break
+13. SDK package validation with `EnablePackageValidation=true` after hydrating the `NCalc` `1.3.8` baseline package
+14. A modern .NET consumer smoke from the packed local package
 
-Coverage output is written to `artifacts/coverage` and must include `coverage.cobertura.xml`.
+Coverage output is written to `artifacts/coverage` and must include `coverage.cobertura.xml`. `scripts/validate.sh` fails if line coverage falls below `93%` or branch coverage falls below `91%`. These thresholds sit below the current measured coverage so they prevent accidental erosion while leaving a small margin for harmless branch-shape changes.
 
 The Framework compatibility harness intentionally uses a plain console runner rather than MSTest so the same assertions can execute on the `net35` build under Mono and the `netstandard2.0` build under modern .NET. It focuses on culture-sensitive parsing, date and Unicode parsing, decimal/float conversion, unsigned arithmetic quirks, exact legacy exception messages, lazy callbacks, and manual AST evaluation.
 
@@ -115,6 +117,7 @@ It verifies:
 - the baseline `NCalc` `1.3.8` package has token `973cde3f1cafed03`;
 - the current package assemblies are strong-name signed with the configured expected token;
 - the current package assemblies use assembly version `2.0.0.0`;
+- the current package declares license expression `MIT`;
 - `Antlr3.Runtime` is not a package dependency;
 - the `net35` and `netstandard2.0` assemblies embed public `Antlr.Runtime.*`, `NCalcLexer`, `NCalcParser`, and parser return-scope types;
 - a parser/lexer consumer can compile and run against the packed `net35` assembly;
@@ -128,11 +131,12 @@ Modern .NET smoke is automated:
 scripts/consumer-smoke.sh artifacts/packages 2.0.0-qualitygates
 ```
 
-Windows .NET Framework smoke is required before publishing. Minimum release checklist:
+Windows .NET Framework smoke is automated in the release workflow:
 
-1. Pack the branch locally.
-2. Create a .NET Framework consumer project on Windows.
-3. Restore `NCalc` from the local package feed.
-4. Build and run an expression smoke such as `2 * (3 + 5) == 16`.
+```powershell
+scripts/windows-framework-consumer-smoke.ps1 `
+  -PackageSource artifacts/packages `
+  -PackageVersion 2.0.0-qualitygates
+```
 
-This Windows gate is intentionally documented rather than scripted here because this macOS worktree cannot run a .NET Framework executable.
+The script creates a temporary `net48` console project, restores `NCalc` from the local package feed, builds it, then executes expression and parser/lexer assertions against the package asset. NuGet publishing depends on this Windows job.

@@ -14,6 +14,7 @@ readonly BASELINE_VERSION="${API_COMPAT_BASELINE_VERSION:-1.3.8}"
 readonly NUGET_PACKAGE_SOURCE="${NUGET_PACKAGE_SOURCE:-https://api.nuget.org/v3/index.json}"
 readonly EXPECTED_PUBLIC_KEY_TOKEN="${NCALC_EXPECTED_PUBLIC_KEY_TOKEN:-f59bbff0fd43f598}"
 readonly EXPECTED_ASSEMBLY_VERSION="${NCALC_EXPECTED_ASSEMBLY_VERSION:-2.0.0.0}"
+readonly EXPECTED_LICENSE_EXPRESSION="${NCALC_EXPECTED_LICENSE_EXPRESSION:-MIT}"
 readonly LEGACY_PUBLIC_KEY_TOKEN="${NCALC_LEGACY_PUBLIC_KEY_TOKEN:-973cde3f1cafed03}"
 readonly PACKAGE_IDENTITY_MODE="${NCALC_PACKAGE_IDENTITY_MODE:-major}"
 readonly WORK_ROOT="${PACKAGE_COMPATIBILITY_ROOT:-$(mktemp -d "${TMPDIR:-/tmp}/ncalc-package-compatibility.XXXXXX")}"
@@ -159,6 +160,7 @@ validate_current_package_shape() {
   local nuspec_path
   nuspec_path="$(find "${CURRENT_EXTRACT_ROOT}" -maxdepth 1 -name '*.nuspec' -print -quit)"
   require_file "${nuspec_path}"
+  assert_license_metadata "${nuspec_path}"
 
   if grep -q 'Antlr3.Runtime' "${nuspec_path}"; then
     echo "Current package must not expose Antlr3.Runtime as a NuGet dependency." >&2
@@ -178,6 +180,15 @@ validate_current_package_shape() {
     assert_embedded_type "${assembly_path}" "Antlr.Runtime.IAstRuleReturnScope"
     assert_embedded_type "${assembly_path}" "Antlr.Runtime.Tree.CommonTree"
   done < <(current_assemblies)
+}
+
+assert_license_metadata() {
+  local nuspec_path="$1"
+
+  if ! grep -Eq "<license[[:space:]][^>]*type=\"expression\"[^>]*>${EXPECTED_LICENSE_EXPRESSION}</license>" "${nuspec_path}"; then
+    echo "Expected NuGet license expression ${EXPECTED_LICENSE_EXPRESSION} in ${nuspec_path}." >&2
+    exit 1
+  fi
 }
 
 current_assemblies() {

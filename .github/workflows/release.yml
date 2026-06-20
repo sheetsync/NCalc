@@ -28,8 +28,10 @@ env:
 
 jobs:
   package:
-    name: Build, test, pack, and optionally publish
+    name: Build, test, and pack
     runs-on: ubuntu-latest
+    outputs:
+      package-version: ${{ steps.resolve-package-version.outputs.package-version }}
 
     steps:
       - name: Check out repository
@@ -41,6 +43,7 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Resolve package version
+        id: resolve-package-version
         shell: bash
         run: |
           if [ "$GITHUB_EVENT_NAME" = "release" ]; then
@@ -55,6 +58,7 @@ jobs:
           fi
 
           echo "PACKAGE_VERSION=$package_version" >> "$GITHUB_ENV"
+          echo "package-version=$package_version" >> "$GITHUB_OUTPUT"
 
       - name: Install Mono tooling
         run: |
@@ -92,11 +96,57 @@ jobs:
       - name: Upload NuGet package
         uses: actions/upload-artifact@v4
         with:
-          name: ncalc-${{ env.PACKAGE_VERSION }}
+          name: ncalc-${{ steps.resolve-package-version.outputs.package-version }}
           path: |
             artifacts/packages/*.nupkg
             artifacts/packages/*.snupkg
           if-no-files-found: error
+
+  windows-framework-smoke:
+    name: Windows .NET Framework package smoke
+    needs: package
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Download NuGet package
+        uses: actions/download-artifact@v4
+        with:
+          name: ncalc-${{ needs.package.outputs.package-version }}
+          path: artifacts/packages
+
+      - name: Run .NET Framework consumer smoke
+        shell: pwsh
+        run: >
+          scripts/windows-framework-consumer-smoke.ps1
+          -PackageSource artifacts/packages
+          -PackageVersion "${{ needs.package.outputs.package-version }}"
+
+  publish:
+    name: Publish to NuGet.org
+    needs:
+      - package
+      - windows-framework-smoke
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Download NuGet package
+        uses: actions/download-artifact@v4
+        with:
+          name: ncalc-${{ needs.package.outputs.package-version }}
+          path: artifacts/packages
 
       - name: Publish to NuGet.org
         shell: bash

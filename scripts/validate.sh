@@ -10,6 +10,8 @@ readonly PACKAGE_OUTPUT_DIR="${PACKAGE_OUTPUT_DIR:-${REPOSITORY_ROOT}/artifacts/
 readonly PACKAGE_VERSION="${PACKAGE_VERSION:-2.0.0-qualitygates}"
 readonly API_COMPAT_BASELINE_VERSION="${API_COMPAT_BASELINE_VERSION:-1.3.8}"
 readonly NUGET_PACKAGE_SOURCE="${NUGET_PACKAGE_SOURCE:-https://api.nuget.org/v3/index.json}"
+readonly MINIMUM_LINE_COVERAGE="${MINIMUM_LINE_COVERAGE:-0.93}"
+readonly MINIMUM_BRANCH_COVERAGE="${MINIMUM_BRANCH_COVERAGE:-0.91}"
 readonly DEFAULT_LOCAL_STRONG_NAME_KEY="${REPOSITORY_ROOT}/build/NCalc.snk"
 readonly CORE_PROJECT="${CORE_PROJECT:-Evaluant.Calculator/NCalc.csproj}"
 readonly TEST_PROJECT="${TEST_PROJECT:-Evaluant.Calculator.Tests/NCalc.Tests.csproj}"
@@ -19,6 +21,7 @@ main() {
   cd "${REPOSITORY_ROOT}"
 
   require_command dotnet
+  require_command python3
   require_sdk_style_core_project
   prepare_strong_name_key
 
@@ -138,7 +141,41 @@ run_tests_with_coverage() {
     -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
 
   find "${COVERAGE_RESULTS_DIR}" -name 'coverage.cobertura.xml' -print -quit | grep -q .
+
+  local coverage_report
+  coverage_report="$(find "${COVERAGE_RESULTS_DIR}" -name 'coverage.cobertura.xml' -print -quit)"
+  enforce_coverage_thresholds "${coverage_report}"
+
   echo "Coverage report produced under ${COVERAGE_RESULTS_DIR}."
+}
+
+enforce_coverage_thresholds() {
+  local coverage_report="$1"
+
+  python3 - "${coverage_report}" "${MINIMUM_LINE_COVERAGE}" "${MINIMUM_BRANCH_COVERAGE}" <<'PYTHON'
+import sys
+import xml.etree.ElementTree as ET
+
+coverage_report, minimum_line_coverage, minimum_branch_coverage = sys.argv[1:4]
+minimum_line_coverage = float(minimum_line_coverage)
+minimum_branch_coverage = float(minimum_branch_coverage)
+
+root = ET.parse(coverage_report).getroot()
+line_rate = float(root.attrib["line-rate"])
+branch_rate = float(root.attrib["branch-rate"])
+
+print(
+    "Coverage: line {line:.2%} (minimum {minimum_line:.2%}), branch {branch:.2%} (minimum {minimum_branch:.2%}).".format(
+        line=line_rate,
+        minimum_line=minimum_line_coverage,
+        branch=branch_rate,
+        minimum_branch=minimum_branch_coverage,
+    )
+)
+
+if line_rate < minimum_line_coverage or branch_rate < minimum_branch_coverage:
+    raise SystemExit(1)
+PYTHON
 }
 
 pack_package() {

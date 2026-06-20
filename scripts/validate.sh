@@ -7,9 +7,10 @@ readonly REPOSITORY_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 readonly CONFIGURATION="${CONFIGURATION:-Release}"
 readonly COVERAGE_RESULTS_DIR="${COVERAGE_RESULTS_DIR:-${REPOSITORY_ROOT}/artifacts/coverage}"
 readonly PACKAGE_OUTPUT_DIR="${PACKAGE_OUTPUT_DIR:-${REPOSITORY_ROOT}/artifacts/packages}"
-readonly PACKAGE_VERSION="${PACKAGE_VERSION:-1.3.8-qualitygates}"
+readonly PACKAGE_VERSION="${PACKAGE_VERSION:-2.0.0-qualitygates}"
 readonly API_COMPAT_BASELINE_VERSION="${API_COMPAT_BASELINE_VERSION:-1.3.8}"
 readonly NUGET_PACKAGE_SOURCE="${NUGET_PACKAGE_SOURCE:-https://api.nuget.org/v3/index.json}"
+readonly DEFAULT_LOCAL_STRONG_NAME_KEY="${REPOSITORY_ROOT}/build/NCalc.snk"
 readonly CORE_PROJECT="${CORE_PROJECT:-Evaluant.Calculator/NCalc.csproj}"
 readonly TEST_PROJECT="${TEST_PROJECT:-Evaluant.Calculator.Tests/NCalc.Tests.csproj}"
 readonly FRAMEWORK_COMPATIBILITY_PROJECT="${FRAMEWORK_COMPATIBILITY_PROJECT:-Evaluant.Calculator.FrameworkCompatibility.Tests/NCalc.FrameworkCompatibility.Tests.csproj}"
@@ -19,12 +20,14 @@ main() {
 
   require_command dotnet
   require_sdk_style_core_project
+  prepare_strong_name_key
 
   restore_projects
   build_projects
   run_framework_compatibility_tests
   run_tests_with_coverage
   pack_package
+  run_package_compatibility_check
   run_api_compatibility_check
   run_modern_consumer_smoke
 
@@ -54,6 +57,35 @@ MESSAGE
   fi
 
   echo "SDK-style core project detected."
+}
+
+prepare_strong_name_key() {
+  print_section "Checking strong-name signing key"
+
+  if [[ -z "${NCalcStrongNameKeyFile:-}" && -f "${DEFAULT_LOCAL_STRONG_NAME_KEY}" ]]; then
+    export NCalcStrongNameKeyFile="${DEFAULT_LOCAL_STRONG_NAME_KEY}"
+  fi
+
+  if [[ -z "${NCalcStrongNameKeyFile:-}" ]]; then
+    cat >&2 <<MESSAGE
+NCalc release validation requires a private strong-name key, but NCalcStrongNameKeyFile was not set.
+
+For local validation, generate or place an ignored key at:
+  ${DEFAULT_LOCAL_STRONG_NAME_KEY}
+
+If that key is not the production major-version key with token f59bbff0fd43f598, also set NCALC_EXPECTED_PUBLIC_KEY_TOKEN to the key's token for temporary non-release validation.
+
+For CI release validation, provide a private key through the NCALC_STRONG_NAME_KEY_BASE64 secret and export NCalcStrongNameKeyFile to the decoded path.
+MESSAGE
+    exit 2
+  fi
+
+  if [[ ! -f "${NCalcStrongNameKeyFile}" ]]; then
+    echo "NCalcStrongNameKeyFile points to a missing file: ${NCalcStrongNameKeyFile}" >&2
+    exit 2
+  fi
+
+  echo "Using private strong-name key from ${NCalcStrongNameKeyFile}."
 }
 
 restore_projects() {
@@ -140,6 +172,12 @@ run_api_compatibility_check() {
     /p:EnablePackageValidation=true \
     /p:PackageValidationBaselineVersion="${API_COMPAT_BASELINE_VERSION}" \
     /p:NoWarn=PKV006
+}
+
+run_package_compatibility_check() {
+  print_section "Running package compatibility checks"
+
+  "${SCRIPT_DIR}/package-compatibility.sh" "${PACKAGE_OUTPUT_DIR}" "${PACKAGE_VERSION}"
 }
 
 hydrate_api_compatibility_baseline() {

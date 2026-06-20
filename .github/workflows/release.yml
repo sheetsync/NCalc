@@ -24,6 +24,7 @@ env:
   CORE_PROJECT: Evaluant.Calculator/NCalc.csproj
   TEST_PROJECT: Evaluant.Calculator.Tests/NCalc.Tests.csproj
   DOTNET_NOLOGO: true
+  NCALC_EXPECTED_PUBLIC_KEY_TOKEN: f59bbff0fd43f598
 
 jobs:
   package:
@@ -55,10 +56,35 @@ jobs:
 
           echo "PACKAGE_VERSION=$package_version" >> "$GITHUB_ENV"
 
-      - name: Install Mono runtime
+      - name: Install Mono tooling
         run: |
           sudo apt-get update
-          sudo apt-get install --yes mono-runtime
+          sudo apt-get install --yes mono-devel mono-utils
+
+      - name: Prepare release strong-name key
+        shell: bash
+        env:
+          NCALC_STRONG_NAME_KEY_BASE64: ${{ secrets.NCALC_STRONG_NAME_KEY_BASE64 }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${NCALC_STRONG_NAME_KEY_BASE64:-}" ]; then
+            echo "NCALC_STRONG_NAME_KEY_BASE64 is required for release packaging." >&2
+            exit 2
+          fi
+
+          key_path="$RUNNER_TEMP/NCalc.snk"
+          public_key_path="$RUNNER_TEMP/NCalc.public.snk"
+          printf '%s' "$NCALC_STRONG_NAME_KEY_BASE64" | base64 --decode > "$key_path"
+          sn -p "$key_path" "$public_key_path" >/dev/null
+
+          actual_token="$(sn -tp "$public_key_path" | awk '/Public Key Token/ { print $4 }')"
+          if [ "$actual_token" != "$NCALC_EXPECTED_PUBLIC_KEY_TOKEN" ]; then
+            echo "Release signing key token mismatch: expected $NCALC_EXPECTED_PUBLIC_KEY_TOKEN, got $actual_token." >&2
+            exit 1
+          fi
+
+          echo "NCalcStrongNameKeyFile=$key_path" >> "$GITHUB_ENV"
 
       - name: Run release validation gates
         run: scripts/validate.sh

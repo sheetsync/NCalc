@@ -29,6 +29,12 @@ _Package/
 *.snupkg
 packages/
 
+# Private signing material
+*.snk
+*.pfx
+*.p12
+*.pem
+
 # Patch and merge leftovers
 *.patch
 *.orig

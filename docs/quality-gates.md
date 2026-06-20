@@ -12,10 +12,24 @@ Required gates:
 - The expanded characterization tests pass.
 - A Cobertura coverage report is produced by `dotnet test`.
 - The package builds locally with `dotnet pack`.
+- The package assemblies are strong-name signed.
+- The package does not expose `Antlr3.Runtime` as a NuGet dependency; the ANTLR runtime surface remains embedded in `NCalc.dll`.
 - Public API changes require explicit approval and a written compatibility note.
 - Framework compatibility tests pass against both the `net35` asset and the `netstandard2.0` asset.
 - Consumer smoke tests pass from a local package feed for modern .NET.
 - Windows must run a .NET Framework consumer smoke before any public release that claims Framework compatibility.
+
+## Strong-Name Key Policy
+
+The `NCalc` `1.3.8` package was signed with public key token `973cde3f1cafed03`. The private key for that token is not available, so the modernization release is a major-version package identity break even when source and runtime behavior are preserved.
+
+The new major-version key generated for this release line has public key token `f59bbff0fd43f598`. Private key material must never be committed. The repository ignores `.snk`, `.pfx`, `.p12`, and `.pem` files, and `scripts/validate.sh` expects one of these signing paths:
+
+- local production-token validation: the ignored private key for token `f59bbff0fd43f598` at `build/NCalc.snk`, or `NCalcStrongNameKeyFile=/secure/path/NCalc.snk`;
+- local throwaway validation: any ignored `.snk`, plus `NCALC_EXPECTED_PUBLIC_KEY_TOKEN` set to that key's token;
+- release CI: a repository secret named `NCALC_STRONG_NAME_KEY_BASE64`, containing the base64-encoded private `.snk`.
+
+Because the public key token changes, already-compiled .NET Framework consumers that reference `NCalc, PublicKeyToken=973cde3f1cafed03` must rebuild against the major-version package. Binding redirects cannot redirect one strong-name public key token to another. The package compatibility gate records this deliberately as a major-version identity break rather than pretending binary compatibility exists.
 
 ## Local Validation
 
@@ -37,14 +51,15 @@ The script validates the production package and test project directly:
 8. Compatibility assertions against the `net35` asset using `mono` on Unix-like systems or the `.exe` directly on Windows
 9. `dotnet test Evaluant.Calculator.Tests/NCalc.Tests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage"`
 10. `dotnet pack Evaluant.Calculator/NCalc.csproj --configuration Release --no-build`
-11. SDK package validation with `EnablePackageValidation=true` after hydrating the `NCalc` `1.3.8` baseline package
-12. A modern .NET consumer smoke from the packed local package
+11. package compatibility validation for signing, embedded ANTLR, parser source compatibility, and the deliberate major-version identity break
+12. SDK package validation with `EnablePackageValidation=true` after hydrating the `NCalc` `1.3.8` baseline package
+13. A modern .NET consumer smoke from the packed local package
 
 Coverage output is written to `artifacts/coverage` and must include `coverage.cobertura.xml`.
 
 The Framework compatibility harness intentionally uses a plain console runner rather than MSTest so the same assertions can execute on the `net35` build under Mono and the `netstandard2.0` build under modern .NET. It focuses on culture-sensitive parsing, date and Unicode parsing, decimal/float conversion, unsigned arithmetic quirks, exact legacy exception messages, lazy callbacks, and manual AST evaluation.
 
-Local validation packs `NCalc` as `1.3.8-qualitygates` by default. This avoids NuGet reusing a globally cached `NCalc` `1.3.8` baseline package during consumer smoke tests. Override with `PACKAGE_VERSION=...` only when the replacement version is deliberate.
+Local validation packs `NCalc` as `2.0.0-qualitygates` by default. This avoids NuGet reusing a globally cached `NCalc` `1.3.8` baseline package during consumer smoke tests and reflects the major-version package identity change. Override with `PACKAGE_VERSION=...` only when the replacement version is deliberate.
 
 The full legacy `NCalc.sln` still contains `Evaluant.Calculator.Play`, a .NET Framework 3.5 sample project. Solution-wide validation should be re-enabled after that sample project is either modernized, removed from the solution, or gated to Windows/Mono explicitly.
 
@@ -73,7 +88,7 @@ dotnet pack Evaluant.Calculator/NCalc.csproj \
   --no-build \
   --output artifacts/packages/api-compat \
   /p:ContinuousIntegrationBuild=true \
-  /p:PackageVersion=1.3.8-qualitygates \
+  /p:PackageVersion=2.0.0-qualitygates \
   /p:EnablePackageValidation=true \
   /p:PackageValidationBaselineVersion=1.3.8 \
   /p:NoWarn=PKV006
@@ -87,12 +102,30 @@ If the public generated ANTLR parser surface makes package validation too noisy,
 - the new public signature,
 - why compatibility is still acceptable or why a breaking-change version is required.
 
+## Package Compatibility
+
+SDK package validation checks public API compatibility, but it does not prove all package identity facts that matter for this modernization. The additional package gate is:
+
+```sh
+scripts/package-compatibility.sh artifacts/packages 2.0.0-qualitygates
+```
+
+It verifies:
+
+- the baseline `NCalc` `1.3.8` package has token `973cde3f1cafed03`;
+- the current package assemblies are strong-name signed with the configured expected token;
+- the current package assemblies use assembly version `2.0.0.0`;
+- `Antlr3.Runtime` is not a package dependency;
+- the `net35` and `netstandard2.0` assemblies embed public `Antlr.Runtime.*`, `NCalcLexer`, `NCalcParser`, and parser return-scope types;
+- a parser/lexer consumer can compile and run against the packed `net35` assembly;
+- a consumer compiled against the legacy package references the old token, documenting why a new key is a major-version binary identity break.
+
 ## Consumer Smoke
 
 Modern .NET smoke is automated:
 
 ```sh
-scripts/consumer-smoke.sh artifacts/packages 1.3.8-qualitygates
+scripts/consumer-smoke.sh artifacts/packages 2.0.0-qualitygates
 ```
 
 Windows .NET Framework smoke is required before publishing. Minimum release checklist:

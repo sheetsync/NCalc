@@ -1,0 +1,25 @@
+<Project>
+  <!-- NCalc 1.3.8 exposed the ANTLR runtime surface from NCalc.dll itself. Release builds keep that package shape by merging Antlr3.Runtime back into each target assembly. -->
+  <PropertyGroup>
+    <NCalcAntlrRuntimeAssembly Condition="'$(TargetFramework)' == 'net35'">$(NuGetPackageRoot)antlr3.runtime/3.5.1/lib/net20/Antlr3.Runtime.dll</NCalcAntlrRuntimeAssembly>
+    <NCalcAntlrRuntimeAssembly Condition="'$(TargetFramework)' == 'netstandard2.0'">$(NuGetPackageRoot)antlr3.runtime/3.5.1/lib/netstandard1.1/Antlr3.Runtime.dll</NCalcAntlrRuntimeAssembly>
+  </PropertyGroup>
+
+  <Target Name="MergeAntlrRuntimeIntoNCalc" AfterTargets="Build" Condition="'$(Configuration)' == 'Release' and '$(TargetFramework)' != ''">
+    <ItemGroup>
+      <NCalcRepackInputAssemblies Include="$(TargetPath)" />
+      <NCalcRepackInputAssemblies Include="$(NCalcAntlrRuntimeAssembly)" />
+    </ItemGroup>
+
+    <ILRepack
+      Parallel="true"
+      DebugInfo="true"
+      AllowDuplicateResources="false"
+      InputAssemblies="@(NCalcRepackInputAssemblies)"
+      TargetKind="SameAsPrimaryAssembly"
+      KeyFile="$(NCalcStrongNameKeyFile)"
+      OutputFile="$(TargetPath)" />
+
+    <Delete Files="$(OutDir)Antlr3.Runtime.dll" Condition="Exists('$(OutDir)Antlr3.Runtime.dll')" />
+  </Target>
+</Project>

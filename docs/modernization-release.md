@@ -29,7 +29,7 @@ dotnet pack Evaluant.Calculator/NCalc.csproj --configuration Release --no-build 
 
 The pack command should emit both `.nupkg` and `.snupkg` files after the SDK-style project conversion. The current legacy project layout still targets .NET Framework 3.5, so these commands depend on the earlier SDK-style conversion PRs.
 
-The GitHub CI workflow runs the same restore, build, test, and pack flow on Ubuntu, macOS, and Windows. A dedicated Ubuntu quality-gates job also runs `scripts/validate.sh`, including API compatibility, coverage, local-feed consumer smoke, and the compatibility harness against both `net35` under Mono and `netstandard2.0` under modern .NET. CI validates the library and modern test project directly because the full solution still contains the legacy `Evaluant.Calculator.Play` .NET Framework 3.5 sample project. Windows remains part of the required gate because the modernization must preserve compatibility expectations for existing .NET Framework consumers.
+The GitHub CI workflow runs restore, build, and test on Ubuntu, macOS, and Windows. A dedicated Ubuntu quality-gates job runs `scripts/validate.sh`, including signed package creation, package compatibility, API compatibility, coverage, local-feed consumer smoke, and the compatibility harness against both `net35` under Mono and `netstandard2.0` under modern .NET. CI validates the library and modern test project directly because the full solution still contains the legacy `Evaluant.Calculator.Play` .NET Framework 3.5 sample project. Windows remains part of the required gate because the modernization must preserve compatibility expectations for existing .NET Framework consumers.
 
 ## Release Quality Gate
 
@@ -51,6 +51,28 @@ Packages are configured for deterministic builds, Source Link, repository metada
 
 No license metadata is declared here because this checkout does not contain a license file or existing license declaration. Add an explicit repository license before publishing a public package version.
 
+## Strong-Name Signing
+
+The old `NCalc` `1.3.8` strong-name private key is unavailable. Its public key token was `973cde3f1cafed03`, so a newly signed modernization package cannot be binary-compatible for already-compiled strong-name consumers. This release line is therefore `2.0.0` or later, uses assembly version `2.0.0.0`, and uses the new public key token `f59bbff0fd43f598`.
+
+Do not commit private signing keys. Local production-token validation should use the ignored private key for token `f59bbff0fd43f598`:
+
+```sh
+scripts/validate.sh
+```
+
+If the production key is stored elsewhere, set:
+
+```sh
+NCalcStrongNameKeyFile=/secure/path/NCalc.snk scripts/validate.sh
+```
+
+For temporary non-release validation with a throwaway key, generate an ignored key and set `NCALC_EXPECTED_PUBLIC_KEY_TOKEN` to the generated token. Do not publish a package from a throwaway key.
+
+GitHub release packaging requires `NCALC_STRONG_NAME_KEY_BASE64`, a base64-encoded `.snk` stored as a repository secret. The release workflow decodes that secret to the runner temp directory and fails if the public key token does not match `f59bbff0fd43f598`.
+
+For non-release CI, the quality-gates workflow can generate an ephemeral key when the secret is unavailable. That still proves the package is signable, repacked, and source-compatible, while the release workflow remains the authority for the stable production token.
+
 ## Deferred Package Validation And Restore Locking
 
 Package validation settings are intentionally not enabled in this lane yet. They should be added after the SDK-style project exists and a real package baseline/versioning policy is chosen; enabling package validation without a baseline here would either be untestable on this branch or risk noisy validation with no compatibility signal.
@@ -66,4 +88,4 @@ The release workflow builds, tests, packs, uploads the `.nupkg` and `.snupkg` ar
 - a GitHub Release is published; or
 - the manual workflow is run with `publish` enabled.
 
-Publishing requires a repository secret named `NUGET_API_KEY`.
+Publishing requires repository secrets named `NUGET_API_KEY` and `NCALC_STRONG_NAME_KEY_BASE64`.

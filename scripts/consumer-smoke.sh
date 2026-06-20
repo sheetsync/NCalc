@@ -71,6 +71,8 @@ add_local_package() {
 write_smoke_program() {
   cat >"${SMOKE_ROOT}/NCalc.ConsumerSmoke/Program.cs" <<'CSHARP'
 using System;
+using Antlr.Runtime;
+using Antlr.Runtime.Tree;
 using NCalc;
 
 object result = new Expression("2 * (3 + 5)").Evaluate();
@@ -78,6 +80,17 @@ object result = new Expression("2 * (3 + 5)").Evaluate();
 if (!Equals(16, result))
 {
     throw new InvalidOperationException($"Unexpected NCalc result: {result}");
+}
+
+NCalcLexer lexer = new NCalcLexer(new ANTLRStringStream("1 + 2"));
+CommonTokenStream tokens = new CommonTokenStream(lexer);
+NCalcParser parser = new NCalcParser(tokens);
+NCalcParser.ncalcExpression_return parserResult = parser.ncalcExpression();
+CommonTree? tree = parserResult.Tree as CommonTree;
+
+if (tree is null)
+{
+    throw new InvalidOperationException("Expected parser to return a CommonTree.");
 }
 
 Console.WriteLine($"NCalc consumer smoke passed: {result}");
